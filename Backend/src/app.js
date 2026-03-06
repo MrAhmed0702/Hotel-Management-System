@@ -2,6 +2,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import authRoutes from "./modules/auth/auth.routes.js";
+
 
 const app = express();
 
@@ -24,6 +26,9 @@ app.get("/health", (req, res) => {
     message: "API is running"
   });
 });
+
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
