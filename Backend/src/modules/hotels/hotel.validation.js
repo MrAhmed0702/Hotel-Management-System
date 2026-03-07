@@ -14,10 +14,10 @@ export const hotelSchema = Joi.object({
 
   address: Joi.object({
     street: Joi.string().trim().required(),
-    city: Joi.string().trim().required(),
+    city: Joi.string().trim().lowercase().required(),
     state: Joi.string().trim().required(),
     zipCode: Joi.string().trim().required(),
-    country: Joi.string().trim().required()
+    country: Joi.string().trim().lowercase().required()
   }).required(),
 
   images: Joi.array()
