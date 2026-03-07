@@ -13,6 +13,8 @@ export const registerSchema = Joi.object({
     dateOfBirth: Joi.date().required(),
 
     gender: Joi.string().valid("male", "female").required(),
+
+    profilePicture: Joi.string().uri(),
 })
 
 export const loginSchema = Joi.object({

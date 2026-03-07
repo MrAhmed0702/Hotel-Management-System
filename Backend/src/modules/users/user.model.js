@@ -35,6 +35,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       select: false,
+      minLength: [6, "Password must be at least 6 characters long"],
     },
 
     dateOfBirth: {
@@ -62,8 +63,34 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+
+    isDeleted: { 
+      type: Boolean,
+      default: false 
+    },
+
+    deletedAt: { 
+      type: Date, 
+      default: null 
+    },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+
+    toJSON: {
+      transform: (doc, ret) => {
+        ret.id = ret._id;
+
+        delete ret._id;
+        delete ret.__v;
+        delete ret.password;
+        delete ret.isDeleted;
+        delete ret.deletedAt;
+
+        return ret;
+      },
+    },
+  },
 );
 
 userSchema.pre("save", async function () {
@@ -71,7 +98,7 @@ userSchema.pre("save", async function () {
     return;
   }
 
-  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS);
+  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
 
   this.password = await bcrypt.hash(this.password, saltRounds);
 });
@@ -79,5 +106,9 @@ userSchema.pre("save", async function () {
 userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
+
+userSchema.pre(/^find/, function() {
+  this.where({ isDeleted: false });
+});
 
 export default model("User", userSchema);

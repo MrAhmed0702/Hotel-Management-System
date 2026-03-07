@@ -2,7 +2,7 @@ import User from "../users/user.model.js";
 import generateToken from "../../utils/generateToken.js";
 
 export const registerUser = async(data) => {
-    const {firstName, lastName, email, phoneNumber, password, dateOfBirth, gender} = data;
+    const {firstName, lastName, email, phoneNumber, password, dateOfBirth, gender, profilePicture} = data;
 
     const userExists = await User.findOne({email});
     if(userExists) {
@@ -17,6 +17,7 @@ export const registerUser = async(data) => {
         password,
         dateOfBirth,
         gender,
+        profilePicture,
     });
 
     return user;
@@ -27,7 +28,7 @@ export const loginUser = async(data) => {
 
     const user = await User.findOne({email}).select("+password");
 
-    if(!user || !(await user.comparePassword(password))) {
+    if(!user || !(await user.comparePassword(password)) || user.isDeleted) {
         throw new Error("Invalid email or password");
     }
 
