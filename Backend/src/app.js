@@ -4,6 +4,7 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
+import hotelRoutes from "./modules/hotels/hotel.routes.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get("/health", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+app.use("/hotels", hotelRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
