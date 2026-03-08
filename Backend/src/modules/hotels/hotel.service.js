@@ -1,4 +1,5 @@
 import Hotel from "./hotel.model.js";
+import mongoose from "mongoose";
 
 export const createHotelService = async (id, hotelData) => {
     const { hotelName, address } = hotelData;
@@ -71,4 +72,72 @@ export const getAllHotelsService = async (filters, pagination, sort) => {
         totalPages: Math.ceil(total / limit),
         data: hotels
     };
+}
+
+export const getHotelByIdService = async (id) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error("Invalid hotel ID");
+    }
+
+    const hotel = await Hotel.findById(id).select("hotelName description address images amenities averageRating").lean();
+
+    if(!hotel){
+        throw new Error("Hotel not found");
+    }
+
+    return hotel;
+}
+
+export const updateHotelService = async (id, updateData) => {
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        throw new Error("Invalid Hotel ID");
+    }
+
+    const hotel = await Hotel.findById(id);
+
+    if(!hotel) throw new Error("Hotel not found");
+
+    const allowedUpdate = [
+        "hotelName",
+        "description",
+        "address",
+        "images",
+        "amenities",
+        "totalRooms",
+        "status"
+    ]
+
+    const filteredData = Object.fromEntries(
+        Object.entries(updateData).filter(([key]) => allowedUpdate.includes(key))
+    )
+
+    if(Object.keys(filteredData).length === 0) throw new Error("No valid fields provided for update");
+
+    Object.assign(hotel, filteredData);
+
+    await hotel.save();
+
+    return hotel;
+}
+
+export const deleteHotelService = async (id) => {
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        throw new Error("Invalid Hotel ID");
+    }
+
+    const hotel = await Hotel.findById(id);
+
+    if(!hotel) throw new Error("Hotel not found");
+
+    if(hotel.isDeleted){
+        throw new Error("Hotel already deleted");
+    }
+
+    hotel.isDeleted = true;
+    hotel.deletedAt = new Date();
+    hotel.status = "inactive";
+
+    await hotel.save();
+
+    return hotel
 }
