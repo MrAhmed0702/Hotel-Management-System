@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
 import hotelRoutes from "./modules/hotels/hotel.routes.js";
+import roomRoutes from "./modules/rooms/room.routes.js";
 
 const app = express();
 
@@ -12,7 +13,9 @@ app.use(helmet());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 app.use(limiter);
@@ -31,12 +34,14 @@ app.get("/health", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/hotels", hotelRoutes);
+app.use("/hotels/:hotelId/rooms", roomRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
 
-  res.status(500).json({
-    message: "Internal Server Error"
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
   });
 });
 
