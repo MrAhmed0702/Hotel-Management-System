@@ -21,3 +21,20 @@ export const existsHotelById = async (id) => {
 export const findRooms = async (query) => {
     return Room.find(query).lean();
 }
+
+export const findRoomById = async (roomId, hotelId) => {
+    return Room.findOne({
+        _id: roomId,
+        hotelId
+    });
+}
+
+export const updateRoom = async (room) => {
+    return room.save();
+};
+
+export const deleteRoom = async (room) => {
+    room.isDeleted = true;
+    room.deletedAt = new Date();
+    return room.save();
+}

@@ -17,3 +17,19 @@ export const createRoomSchema = Joi.object({
     .valid("available", "maintenance", "inactive")
     .default("available"),
 });
+
+export const updateRoomSchema = Joi.object({
+  type: Joi.string().valid("single", "double", "suite", "deluxe", "family"),
+
+  description: Joi.string().trim().min(20).max(450).allow("", null),
+
+  price: Joi.number().min(1),
+
+  capacity: Joi.number().min(1),
+
+  amenities: Joi.array().items(Joi.string().trim()).default([]),
+
+  status: Joi.string()
+    .valid("available", "maintenance", "inactive")
+    .default("available"),
+}).or("type", "description", "price", "capacity", "amenities", "status");

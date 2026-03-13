@@ -16,7 +16,7 @@ export const createRoom = async (req, res) => {
   });
 };
 
-export const getRoom = async (req, res) => {
+export const getRooms = async (req, res) => {
   const { price, capacity, type, status } = req.query;
   const { hotelId } = req.params;
 
@@ -37,6 +37,10 @@ export const getRoom = async (req, res) => {
 };
 
 export const getRoomById = async (req, res) => {
+  const { roomId, hotelId } = req.params;
+
+  const room = await getRoomByIdService(roomId, hotelId);
+
   res.status(200).json({
     success: true,
     message: "Room fetched Successfully",
@@ -45,6 +49,9 @@ export const getRoomById = async (req, res) => {
 };
 
 export const updateRoom = async (req, res) => {
+  const { roomId, hotelId } = req.params;
+  const room = await updateRoomService(roomId, hotelId, req.body);
+
   res.status(200).json({
     success: true,
     message: "Room updated Successfully",
@@ -53,6 +60,9 @@ export const updateRoom = async (req, res) => {
 };
 
 export const deleteRoom = async (req, res) => {
+  const { roomId, hotelId } = req.params;
+  const room = await deleteRoomService(roomId, hotelId);
+
   res.status(200).json({
     success: true,
     message: "Room Record Deleted Successfully",

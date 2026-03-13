@@ -1,61 +1,90 @@
 import { Schema, model, Types } from "mongoose";
 
-const roomSchema = new Schema({
+const roomSchema = new Schema(
+  {
     hotelId: {
-        type: Types.ObjectId,
-        ref: "Hotel",
-        required: true,
-        index: true
+      type: Types.ObjectId,
+      ref: "Hotel",
+      required: true,
+      index: true,
     },
 
     roomNumber: {
-        type: Number,
-        min: [1, "Room Number must be greater than 0"],
-        required: true
+      type: Number,
+      min: [1, "Room Number must be greater than 0"],
+      required: true,
     },
 
     type: {
-        type: String,
-        enum: ["single", "double", "suite", "deluxe", "family"],
-        required: true
+      type: String,
+      enum: ["single", "double", "suite", "deluxe", "family"],
+      required: true,
     },
 
     description: {
-         type: String,
-         minlength: 20,
-         maxlength: 450,
-         trim: true,
-         default: ""
+      type: String,
+      minlength: 20,
+      maxlength: 450,
+      trim: true,
+      default: "",
     },
 
     price: {
-        type: Number,
-        min: [1, "Price must be greater than 0"],
-        required: true
+      type: Number,
+      min: [1, "Price must be greater than 0"],
+      required: true,
     },
 
     capacity: {
-        type: Number,
-        min: [1, "Capacity must be greater than 0"],
-        required: true
+      type: Number,
+      min: [1, "Capacity must be greater than 0"],
+      required: true,
     },
 
     amenities: {
-        type: [String],
-        default: []
+      type: [String],
+      default: [],
     },
 
     status: {
-        type: String,
-        enum: ["available", "maintenance", "inactive"],
-        default: "available"
-    }
+      type: String,
+      enum: ["available", "maintenance", "inactive"],
+      default: "available",
+    },
 
-}, { timestamps: true });
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
 
-roomSchema.index(
-    { hotelId: 1, roomNumber: 1 },
-    { unique: true }
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+
+    toJSON: {
+      transform: (doc, ret) => {
+        ret.id = ret._id;
+
+        delete ret._id;
+        delete ret.__v;
+        delete ret.isDeleted;
+        delete ret.deletedAt;
+
+        return ret;
+      },
+    },
+  },
 );
+
+roomSchema.index({ hotelId: 1, roomNumber: 1 }, { unique: true });
+
+roomSchema.pre(/^find/, function(next){
+  this.where({ isDeleted: false });
+  next();
+});
 
 export default model("Room", roomSchema);

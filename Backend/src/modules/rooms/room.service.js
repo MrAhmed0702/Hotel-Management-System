@@ -47,3 +47,67 @@ export const getRoomService = async (filtered, hotelId) => {
 
     return rooms;
 }
+
+export const getRoomByIdService = async (roomId, hotelId) => {
+  if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
+    throw new Error("Invalid ID");
+  }
+
+  const hotel = await roomRepo.existsHotelById(hotelId);
+
+  if(!hotel) throw new Error("Hotel Doesn't Exists");
+
+  const room = await roomRepo.findRoomById(roomId, hotelId);
+
+  if(!room) throw new Error("Room Doesn't Exists");
+
+  return room;
+}
+
+export const updateRoomService = async (roomId, hotelId, roomUpdatedData) => {
+  if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
+    throw new Error("Invalid ID");
+  }
+
+  const hotel = await roomRepo.existsHotelById(hotelId);
+
+  if(!hotel) throw new Error("Hotel Doesn't Exists");
+
+  const room = await roomRepo.findRoomById(roomId, hotelId);
+
+  if(!room) throw new Error("Room Doesn't Exists");
+
+  const allowedUpdates = ["type", "price", "capacity", "description", "amenities", "status"];
+
+  const filteredData = Object.fromEntries(
+    Object.entries(roomUpdatedData).filter(([key]) => allowedUpdates.includes(key))
+  )
+
+  if(Object.keys(filteredData).length === 0){
+    throw new Error(`No valid fields provided for update`);
+  }
+
+  Object.assign(room, filteredData);
+
+  await roomRepo.updataRoom(room);
+
+  return room;
+}
+
+export const deleteRoomService = async (roomId, hotelId) => {
+  if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
+    throw new Error("Invalid ID");
+  }
+
+  const hotel = await roomRepo.existsHotelById(hotelId);
+
+  if(!hotel) throw new Error("Hotel Doesn't Exists");
+
+  const room = await roomRepo.findRoomById(roomId, hotelId);
+
+  if(!room) throw new Error("Room Doesn't Exists");
+
+  await roomRepo.deleteRoom(room);
+
+  return room;
+}
