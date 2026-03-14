@@ -44,7 +44,7 @@ const roomSchema = new Schema(
     amenities: {
       type: [String],
       default: [],
-    },
+    },  
 
     status: {
       type: String,

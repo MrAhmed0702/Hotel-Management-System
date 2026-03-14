@@ -6,6 +6,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
 import hotelRoutes from "./modules/hotels/hotel.routes.js";
 import roomRoutes from "./modules/rooms/room.routes.js";
+import bookingRoutes from "./modules/bookings/booking.routes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/hotels", hotelRoutes);
 app.use("/hotels/:hotelId/rooms", roomRoutes);
+app.use("/hotels/:hotelId/bookings", bookingRoutes)
 
 app.use((err, req, res, next) => {
   console.error(err);
