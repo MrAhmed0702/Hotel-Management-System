@@ -2,6 +2,8 @@ import Booking from "./booking.model.js";
 import Room from "../rooms/room.model.js";
 import Hotel from "../hotels/hotel.model.js";
 
+const now = new Date();
+
 export const hotelExists = async (hotelId, session) => {
   return Boolean(
     await Hotel.exists({ _id: hotelId, isDeleted: false }).session(session),
@@ -103,12 +105,14 @@ export const getBookingById = async (userId, bookingId) => {
 };
 
 export const cancelBooking = async (bookingId, userId) => {
+
   return await Booking.findOneAndUpdate(
     {
       _id: bookingId,
       userId,
       status: { $in: ["pending", "confirmed"] },
-      expiresAt: { $gt: new Date() },
+      paymentStatus: "none",
+      expiresAt: { $gt: now },
       isDeleted: false,
     },
     {
@@ -120,3 +124,70 @@ export const cancelBooking = async (bookingId, userId) => {
     },
   ).lean();
 };
+
+export const markPaymentInitiated = async (bookingId, userId, session) => {
+  return await Booking.findOneAndUpdate(
+    {
+      _id: bookingId,
+      userId,
+      status: "pending",
+      paymentStatus: "none",
+      expiresAt: { $gt: now },
+    },
+    {
+      paymentStatus: "initiated",
+    },
+    {
+      new: true,
+      session,
+    }
+  ).lean();
+};
+
+export const lockBookingForPayment = async (bookingId, userId, session) => {
+  return await Booking.findOneAndUpdate(
+    {
+      _id: bookingId,
+      userId,
+      status: "pending",
+      paymentStatus: { $in: ["none", "initiated"] },
+      expiresAt: { $gt: now },
+    },
+    {
+      paymentStatus: "initiated",
+    },
+    {
+      new: true,
+      session,
+    }
+  ).lean();
+};
+
+export const getBookingById2 = async (userId, bookingId, session) => {
+  return await Booking.findOne({
+    _id: bookingId,
+    userId,
+    isDeleted: false,
+  }).session(session).lean();
+};
+
+export const updateBooking = async (bookingId, userId, session) => {
+  return await Booking.findOneAndUpdate(
+    {
+      _id: bookingId,
+      userId,
+      status: "pending",
+      paymentStatus: "initiated",
+      expiresAt: { $gt: now },
+    },
+    {
+      status: "confirmed",
+      paymentStatus: "paid"
+    },
+    {
+      new: true,
+      session,
+      runValidators: true
+    }
+  ).lean();
+}

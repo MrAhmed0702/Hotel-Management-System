@@ -68,6 +68,12 @@ const bookingSchema = new Schema(
       type: Boolean,
       default: false,
     },
+
+    paymentStatus: {
+      type: String,
+      enum: ["none", "initiated", "paid"],
+      default: "none",
+    },
   },
 
   {
@@ -96,5 +102,7 @@ bookingSchema.index({
 });
 
 bookingSchema.index({ userId: 1, createdAt: -1 });
+
+bookingSchema.index({ hotelId: 1, roomType: 1, isDeleted: 1 });
 
 export default model("Booking", bookingSchema);

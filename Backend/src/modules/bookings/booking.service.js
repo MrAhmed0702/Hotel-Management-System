@@ -1,6 +1,7 @@
 import * as BookingRepo from "./booking.repository.js";
 import { calculateNightsUTC } from "../../utils/date.utils.js";
 import mongoose, { Types } from "mongoose";
+import { ApiError } from "../../utils/apiError.js";
 
 export const createBookingService = async (userId, hotelId, bookingData) => {
   const session = await mongoose.startSession();
