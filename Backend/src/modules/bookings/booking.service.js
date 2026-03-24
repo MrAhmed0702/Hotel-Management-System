@@ -1,31 +1,37 @@
-import mongoose, { Types } from "mongoose";
-import { calculateNightsUTC } from "../../utils/nightsStayCalculationLogic.js";
-import * as BookingRepo from "./booking.repository.js";
-
 export const createBookingService = async (userId, hotelId, bookingData) => {
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
-    // 1️⃣ Validate hotelId
+    // 1️⃣ Validate + Convert ObjectId
     if (!Types.ObjectId.isValid(hotelId)) {
-      throw new Error("Invalid Hotel ID");
+      throw new ApiError(400, "Invalid Hotel ID");
     }
 
-    // 2️⃣ Check hotel exists
-    const hotel = await BookingRepo.hotelExists(hotelId, session);
+    const hotelObjectId = new Types.ObjectId(hotelId);
+
+    // 2️⃣ Single time reference
+    const now = new Date();
+
+    // 3️⃣ Check hotel exists
+    const hotel = await BookingRepo.hotelExists(hotelObjectId, session);
     if (!hotel) {
-      throw new Error("Hotel not found");
+      throw new ApiError(404, "Hotel not found");
     }
 
-    // 3️⃣ Check room type exists
-    const room = await BookingRepo.roomExists(hotelId, bookingData.roomType, session);
+    // 4️⃣ Check room exists
+    const room = await BookingRepo.roomExists(
+      hotelObjectId,
+      bookingData.roomType,
+      session
+    );
+
     if (!room) {
-      throw new Error("Room not found");
+      throw new ApiError(404, "Room not found");
     }
 
-    // 4️⃣ Calculate nights
+    // 5️⃣ Calculate nights
     const nights = calculateNightsUTC(
       bookingData.checkIn,
       bookingData.checkOut
@@ -33,41 +39,44 @@ export const createBookingService = async (userId, hotelId, bookingData) => {
 
     const roomPrice = room.price;
 
-    // 5️⃣ Count overlapping bookings
+    // 6️⃣ Count overlapping bookings
     const bookedRooms = await BookingRepo.countOverlappingBookings(
-      hotelId,
+      hotelObjectId,
       bookingData.roomType,
       bookingData.checkIn,
       bookingData.checkOut,
       session
     );
 
-    // 6️⃣ Count total rooms
+    // 7️⃣ Count total rooms
     const totalRooms = await BookingRepo.countRoomsByType(
-      hotelId,
+      hotelObjectId,
       bookingData.roomType,
       session
     );
 
-    // 7️⃣ Validate availability
+    // 8️⃣ Validate availability
     if (bookedRooms + bookingData.quantity > totalRooms) {
-      throw new Error("Not enough rooms available");
+      throw new ApiError(409, "Not enough rooms available");
     }
 
-    // 8️⃣ Validate guest capacity
+    // 9️⃣ Validate guest capacity
     const maxGuests = room.capacity * bookingData.quantity;
 
     if (bookingData.numberOfGuests > maxGuests) {
-      throw new Error(`Maximum number of guests allowed is ${maxGuests}`);
+      throw new ApiError(
+        400,
+        `Maximum number of guests allowed is ${maxGuests}`
+      );
     }
 
-    // 9️⃣ Calculate total price
+    // 🔟 Calculate total price
     const totalPrice = roomPrice * nights * bookingData.quantity;
 
-    // 🔟 Create booking
+    // 11️⃣ Create booking
     const booking = await BookingRepo.createBooking(
       {
-        hotelId,
+        hotelId: hotelObjectId,
         userId,
         roomType: bookingData.roomType,
         quantity: bookingData.quantity,
@@ -77,19 +86,19 @@ export const createBookingService = async (userId, hotelId, bookingData) => {
         checkIn: bookingData.checkIn,
         checkOut: bookingData.checkOut,
         status: "pending",
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+        expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
       },
       session
     );
 
     await session.commitTransaction();
-    session.endSession();
 
     return booking;
 
   } catch (error) {
     await session.abortTransaction();
-    session.endSession();
     throw error;
+  } finally {
+    session.endSession();
   }
 };

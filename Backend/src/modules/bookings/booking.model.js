@@ -86,7 +86,8 @@ bookingSchema.index({
     roomType: 1,
     status: 1,
     checkIn: 1,
-    checkOut: 1
+    checkOut: 1,
+    expiresAt: 1
 });
 
 export default model("Booking", bookingSchema);
