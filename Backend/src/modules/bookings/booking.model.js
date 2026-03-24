@@ -1,93 +1,100 @@
-import { Schema, model, Types} from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
 const bookingSchema = new Schema(
-    {
-        userId: {
-            type: Types.ObjectId,
-            ref: "User",
-            required: true
-        },
-
-        hotelId: {
-            type: Types.ObjectId,
-            ref: "Hotel",
-            required: true
-        },
-
-        roomType: {
-            type: String,
-            enum: ["single", "double", "suite", "deluxe", "family"],
-            required: true
-        },
-
-        quantity: {
-            type: Number,
-            required: true,
-            min: 1
-        },
-
-        totalPrice: {
-            type: Number,
-            required: true,
-            min: 0
-        },
-
-        pricePerNight: {
-            type: Number,
-            required: true,
-            min: 0
-        },
-
-        numberOfGuests: {
-            type: Number,
-            required: true,
-        },
-        
-        checkIn: {
-            type: Date,
-            required: true
-        },
-
-        checkOut: {
-            type: Date,
-            required: true
-        },
-
-        status: {
-            type: String,
-            enum: ["pending", "confirmed", "cancelled", "expired"],
-            default: "pending"
-        },
-
-        expiresAt: {
-            type: Date,
-            required: true
-        }
+  {
+    userId: {
+      type: Types.ObjectId,
+      ref: "User",
+      required: true,
     },
 
-    {
-        timestamps: true,
+    hotelId: {
+      type: Types.ObjectId,
+      ref: "Hotel",
+      required: true,
+    },
 
-        toJSON: {
-            transform: (doc, ret) => {
-                ret.id = ret._id;
+    roomType: {
+      type: String,
+      enum: ["single", "double", "suite", "deluxe", "family"],
+      required: true,
+    },
 
-                delete ret._id;
-                delete ret.__v;
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
-                return ret;
-            }
-        }
-    }
-)
+    totalPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    pricePerNight: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    numberOfGuests: {
+      type: Number,
+      required: true,
+    },
+
+    checkIn: {
+      type: Date,
+      required: true,
+    },
+
+    checkOut: {
+      type: Date,
+      required: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "confirmed", "cancelled", "expired"],
+      default: "pending",
+    },
+
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+  },
+
+  {
+    timestamps: true,
+
+    toJSON: {
+      transform: (doc, ret) => {
+        ret.id = ret._id;
+
+        delete ret._id;
+        delete ret.__v;
+
+        return ret;
+      },
+    },
+  },
+);
 
 bookingSchema.index({
-    hotelId: 1,
-    roomType: 1,
-    status: 1,
-    checkIn: 1,
-    checkOut: 1,
-    expiresAt: 1
+  hotelId: 1,
+  roomType: 1,
+  status: 1,
+  checkIn: 1,
+  checkOut: 1,
+  expiresAt: 1,
 });
+
+bookingSchema.index({ userId: 1, createdAt: -1 });
 
 export default model("Booking", bookingSchema);
