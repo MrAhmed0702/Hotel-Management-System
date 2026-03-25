@@ -33,24 +33,50 @@ const paymentSchema = new Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["cash", "card", "upi", "netbanking", "wallet"],
+      enum: ["card", "upi", "netbanking", "wallet"],
     },
 
-    transactionId: {
+    // 🔥 Razorpay integration fields
+    razorpayOrderId: {
+      type: String,
+    },
+
+    razorpayPaymentId: {
       type: String,
       unique: true,
       sparse: true,
     },
 
+    razorpaySignature: {
+      type: String,
+    },
+
+    // 🔁 Idempotency
     idempotencyKey: {
       type: String,
       unique: true,
       sparse: true,
     },
 
+    // ⏱ Expiry (logical, not deletion trigger)
     expiresAt: {
       type: Date,
       required: true,
+    },
+
+    // 📦 Metadata (flexible)
+    metadata: {
+      type: Map,
+      of: String,
+    },
+
+    // 🧾 Failure/debug info
+    failureReason: {
+      type: String,
+    },
+
+    gatewayResponse: {
+      type: Schema.Types.Mixed,
     },
   },
   {
@@ -67,9 +93,9 @@ const paymentSchema = new Schema(
   }
 );
 
-paymentSchema.index({ bookingId: 1 }, { unique: true });
+paymentSchema.index({ bookingId: 1, status: 1 });
 paymentSchema.index({ userId: 1, createdAt: -1 });
-paymentSchema.index({ idempotencyKey: 1 }, { unique: true });
-paymentSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+paymentSchema.index({ razorpayPaymentId: 1 }, { unique: true, sparse: true });
+paymentSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 
 export default model("Payment", paymentSchema);

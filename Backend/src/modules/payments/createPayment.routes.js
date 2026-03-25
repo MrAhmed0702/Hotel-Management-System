@@ -1,6 +1,6 @@
 import express from "express";
 import { createPayment } from "./payment.controller.js";
-import { verifyToken } from "../../middleware/auth.middleware.js";
+import { verifyToken } from "../../middleware/verifyToken.middleware.js";
 
 const router = express.Router({ mergeParams: true });
 

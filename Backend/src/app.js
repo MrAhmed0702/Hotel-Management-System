@@ -10,8 +10,11 @@ import hotelBookingRoutes from "./modules/bookings/hotelBooking.routes.js";
 import bookingRoutes from "./modules/bookings/booking.routes.js";
 import createPaymentRoutes from "./modules/payments/createPayment.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
+import webhookRoutes from "./modules/payments/webhooks/webhook.routes.js";
 
 const app = express();
+
+app.use("/webhooks", express.raw({ type: "application/json" }), webhookRoutes);
 
 app.use(helmet());
 
