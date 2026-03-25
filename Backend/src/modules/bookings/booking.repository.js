@@ -6,7 +6,7 @@ const GRACE_MS = 2 * 60 * 1000;
 
 export const hotelExists = async (hotelId, session) => {
   return Boolean(
-    await Hotel.exists({ _id: hotelId, isDeleted: false }).session(session)
+    await Hotel.exists({ _id: hotelId, isDeleted: false }).session(session),
   );
 };
 
@@ -27,7 +27,7 @@ export const countOverlappingBookings = async (
   checkIn,
   checkOut,
   now,
-  session
+  session,
 ) => {
   const result = await Booking.aggregate([
     {
@@ -78,12 +78,16 @@ export const getBookings = async (userId, page, limit) => {
   return { data, total, page, limit };
 };
 
-export const getBookingById = async (userId, bookingId) => {
-  return Booking.findOne({
+export const getBookingById = async (userId, bookingId, session = null) => {
+  const query = Booking.findOne({
     _id: bookingId,
     userId,
     isDeleted: false,
-  }).lean();
+  });
+
+  if (session) query.session(session);
+
+  return query.lean();
 };
 
 export const cancelBooking = async (bookingId, userId) => {
@@ -95,7 +99,7 @@ export const cancelBooking = async (bookingId, userId) => {
       paymentStatus: { $in: ["none"] },
     },
     { status: "cancelled" },
-    { new: true }
+    { new: true },
   ).lean();
 };
 
@@ -111,16 +115,11 @@ export const lockBookingForPayment = async (bookingId, userId, session) => {
       expiresAt: { $gt: new Date(now.getTime() - GRACE_MS) },
     },
     { paymentStatus: "initiated" },
-    { new: true, session }
+    { new: true, session },
   ).lean();
 };
 
-export const updateBooking = async (
-  bookingId,
-  userId,
-  session,
-  paymentId
-) => {
+export const updateBooking = async (bookingId, userId, session, paymentId) => {
   const now = new Date();
 
   return Booking.findOneAndUpdate(
@@ -136,7 +135,7 @@ export const updateBooking = async (
       paymentStatus: "paid",
       paymentId,
     },
-    { new: true, session }
+    { new: true, session },
   ).lean();
 };
 
@@ -155,6 +154,6 @@ export const updateFailedBooking = async (bookingId, userId, session) => {
       status: "cancelled",
       paymentStatus: "failed",
     },
-    { new: true, session }
+    { new: true, session },
   ).lean();
 };
