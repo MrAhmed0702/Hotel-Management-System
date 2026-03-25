@@ -89,7 +89,7 @@ export const updateRoomService = async (roomId, hotelId, roomUpdatedData) => {
 
   Object.assign(room, filteredData);
 
-  await roomRepo.updataRoom(room);
+  await roomRepo.updateRoom(room);
 
   return room;
 }

@@ -7,7 +7,9 @@ import { razorpayInstance } from "../../config/razorpay.js";
 
 const GRACE_MS = 2 * 60 * 1000;
 
-// 🔹 Create Payment
+//
+// 🔹 CREATE PAYMENT
+//
 export const createPaymentService = async (userId, bookingId, key) => {
   const session = await startSession();
 
@@ -22,18 +24,18 @@ export const createPaymentService = async (userId, bookingId, key) => {
     const userObjectId = new Types.ObjectId(userId);
     const now = new Date();
 
-    // Idempotency
+    // 🔥 Idempotency
     const existing = await PaymentRepo.findByIdempotencyKey(key, session);
     if (existing) {
       await session.commitTransaction();
       return existing;
     }
 
-    // Lock booking
+    // 🔥 Lock booking
     const booking = await BookingRepo.lockBookingForPayment(
       bookingObjectId,
       userObjectId,
-      session,
+      session
     );
 
     if (!booking) throw new ApiError(400, "Booking unavailable");
@@ -42,7 +44,7 @@ export const createPaymentService = async (userId, bookingId, key) => {
       throw new ApiError(400, "Booking expired");
     }
 
-    // Prevent duplicate
+    // 🔥 Prevent duplicate
     const exists = await PaymentRepo.paymentExist(bookingObjectId, session);
     if (exists) throw new ApiError(400, "Payment already exists");
 
@@ -56,11 +58,12 @@ export const createPaymentService = async (userId, bookingId, key) => {
         expiresAt: booking.expiresAt,
         idempotencyKey: key,
       },
-      session,
+      session
     );
 
     await session.commitTransaction();
     return payment;
+
   } catch (err) {
     await session.abortTransaction();
     throw err;
@@ -69,7 +72,9 @@ export const createPaymentService = async (userId, bookingId, key) => {
   }
 };
 
-// 🔹 Razorpay Order
+//
+// 🔹 CREATE RAZORPAY ORDER
+//
 export const createRazorpayOrder = async (payment) => {
   const order = await razorpayInstance.orders.create({
     amount: payment.amount * 100,
@@ -82,13 +87,21 @@ export const createRazorpayOrder = async (payment) => {
     },
   });
 
-  await Payment.updateOne({ _id: payment._id }, { razorpayOrderId: order.id });
+  await Payment.updateOne(
+    { _id: payment._id },
+    { razorpayOrderId: order.id }
+  );
 
   return order;
 };
 
-// 🔹 Confirm Payment
-export const confirmPaymentService = async (paymentId, razorpayPaymentId) => {
+//
+// 🔹 CONFIRM PAYMENT (WEBHOOK)
+//
+export const confirmPaymentService = async (
+  internalPaymentId,
+  razorpayPaymentId
+) => {
   const session = await startSession();
 
   try {
@@ -96,64 +109,8 @@ export const confirmPaymentService = async (paymentId, razorpayPaymentId) => {
 
     const now = new Date();
 
-    const payment = await PaymentRepo.fetchPayment(paymentId, session);
-
-    if (!payment) throw new ApiError(404, "Payment not found");
-
-    if (payment.status === "paid") {
-      await session.abortTransaction();
-      return payment;
-    }
-
-    if (payment.expiresAt < new Date(now.getTime() - GRACE_MS)) {
-      throw new ApiError(400, "Payment expired");
-    }
-
-    const booking = await BookingRepo.getBookingById2(
-      payment.userId,
-      payment.bookingId,
-      session
-    );
-
-    if (!booking) throw new ApiError(404, "Booking not found");
-
-    const updatedPayment = await PaymentRepo.updatePayment(
-      payment._id,
-      razorpayPaymentId,
-      session
-    );
-
-    const updatedBooking = await BookingRepo.updateBooking(
-      payment.bookingId,
-      payment.userId,
-      session,
-      payment._id
-    );
-
-    await session.commitTransaction();
-
-    return { payment: updatedPayment, booking: updatedBooking };
-
-  } catch (err) {
-    await session.abortTransaction();
-    throw err;
-  } finally {
-    session.endSession();
-  }
-};
-
-// 🔹 Fail Payment
-export const failPaymentService = async (
-  internalPaymentId,
-  razorpayPaymentId,
-  failureData
-) => {
-  const session = await startSession();
-
-  try {
-    session.startTransaction();
-
-    let payment;
+    // 🔥 Always trust internal ID FIRST
+    let payment = null;
 
     if (internalPaymentId) {
       payment = await PaymentRepo.fetchPayment(internalPaymentId, session);
@@ -168,8 +125,101 @@ export const failPaymentService = async (
 
     if (!payment) throw new ApiError(404, "Payment not found");
 
+    // 🔥 Idempotency (webhook retry safe)
+    if (payment.status === "paid") {
+      await session.commitTransaction();
+      return payment;
+    }
+
+    if (payment.expiresAt < new Date(now.getTime() - GRACE_MS)) {
+      throw new ApiError(400, "Payment expired");
+    }
+
+    const booking = await BookingRepo.getBookingById(
+      payment.userId,
+      payment.bookingId,
+      session
+    );
+
+    if (!booking) throw new ApiError(404, "Booking not found");
+
+    const updatedPayment = await PaymentRepo.updatePayment(
+      payment._id,
+      razorpayPaymentId,
+      session
+    );
+
+    // 🔥 Handle duplicate webhook safely
+    if (!updatedPayment) {
+      const latest = await PaymentRepo.fetchPayment(payment._id, session);
+
+      if (latest?.status === "paid") {
+        await session.commitTransaction();
+        return latest;
+      }
+
+      throw new ApiError(409, "Payment already processed");
+    }
+
+    const updatedBooking = await BookingRepo.updateBooking(
+      payment.bookingId,
+      payment.userId,
+      session,
+      payment._id
+    );
+
+    if (!updatedBooking) {
+      throw new ApiError(409, "Booking update failed");
+    }
+
+    await session.commitTransaction();
+
+    return {
+      payment: updatedPayment,
+      booking: updatedBooking,
+    };
+
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+};
+
+//
+// 🔹 FAIL PAYMENT (WEBHOOK)
+//
+export const failPaymentService = async (
+  internalPaymentId,
+  razorpayPaymentId,
+  failureData = {}
+) => {
+  const session = await startSession();
+
+  try {
+    session.startTransaction();
+
+    let payment = null;
+
+    // 🔥 Try internal ID first
+    if (internalPaymentId) {
+      payment = await PaymentRepo.fetchPayment(internalPaymentId, session);
+    }
+
+    // 🔥 fallback
+    if (!payment && razorpayPaymentId) {
+      payment = await PaymentRepo.findByRazorpayPaymentId(
+        razorpayPaymentId,
+        session
+      );
+    }
+
+    if (!payment) throw new ApiError(404, "Payment not found");
+
+    // 🔥 Idempotency
     if (payment.status !== "pending") {
-      await session.abortTransaction();
+      await session.commitTransaction();
       return payment;
     }
 
@@ -179,15 +229,6 @@ export const failPaymentService = async (
       session
     );
 
-    if (!updatedPayment) {
-  const latest = await PaymentRepo.fetchPayment(paymentId);
-  if (latest?.status === "paid") {
-    await session.commitTransaction();
-    return latest;
-  }
-  throw new ApiError(409, "Payment already processed");
-}
-
     const updatedBooking = await BookingRepo.updateFailedBooking(
       payment.bookingId,
       payment.userId,
@@ -196,7 +237,10 @@ export const failPaymentService = async (
 
     await session.commitTransaction();
 
-    return { payment: updatedPayment, booking: updatedBooking };
+    return {
+      payment: updatedPayment,
+      booking: updatedBooking,
+    };
 
   } catch (err) {
     await session.abortTransaction();
