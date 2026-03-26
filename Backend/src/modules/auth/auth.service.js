@@ -1,5 +1,6 @@
 import User from "../users/user.model.js";
 import generateToken from "../../utils/generateToken.js";
+import { ApiError } from "../../utils/apiError.js";
 
 export const registerUser = async(data) => {
     const {firstName, lastName, email, phoneNumber, password, dateOfBirth, gender, profilePicture} = data;
@@ -29,7 +30,7 @@ export const loginUser = async(data) => {
     const user = await User.findOne({email}).select("+password");
 
     if(!user || !(await user.comparePassword(password)) || user.isDeleted) {
-        throw new Error("Invalid email or password");
+        throw new ApiError(401, "Invalid email or password");
     }
 
     const token = generateToken(user);
