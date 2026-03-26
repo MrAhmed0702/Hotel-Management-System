@@ -95,7 +95,5 @@ const paymentSchema = new Schema(
 
 paymentSchema.index({ bookingId: 1, status: 1 });
 paymentSchema.index({ userId: 1, createdAt: -1 });
-paymentSchema.index({ razorpayPaymentId: 1 }, { unique: true, sparse: true });
-paymentSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 
 export default model("Payment", paymentSchema);

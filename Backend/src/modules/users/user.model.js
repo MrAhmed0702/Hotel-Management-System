@@ -111,4 +111,18 @@ userSchema.pre(/^find/, function() {
   this.where({ isDeleted: false });
 });
 
+userSchema.set("toObject", {
+  transform: (doc, ret) => {
+    ret.id = ret._id;
+
+    delete ret._id;
+    delete ret.__v;
+    delete ret.password;
+    delete ret.isDeleted;
+    delete ret.deletedAt;
+
+    return ret;
+  },
+});
+
 export default model("User", userSchema);
