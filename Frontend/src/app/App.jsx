@@ -1,32 +1,40 @@
-// import AppRoutes from "./routes.jsx";
-
-// function App() {
-//   return <AppRoutes />
-// }
-
-// export default App
-
 import { useEffect } from "react";
-import AppRoutes from "./routes";
+import { useDispatch } from "react-redux";
+import { loginSuccess, logout } from "../features/auth/authSlice";
 import { authApi } from "../features/auth/api/authApi";
+import AppRoutes from "./routes";
 
 function App() {
-  useEffect(() => {
-    const testLogin = async () => {
-      try {
-        const res = await authApi.login({
-          email: "test@test.com",
-          password: "123456",
-        });
+  const dispatch = useDispatch();
 
-        console.log("LOGIN RESPONSE:", res);
-      } catch (err) {
-        console.error("LOGIN ERROR:", err);
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        dispatch(logout());
+        return;
+      }
+
+      try {
+        const res = await authApi.getMe();
+
+        dispatch(
+          loginSuccess({
+            user: res.data,
+            token,
+          })
+        );
+      } catch (error) {
+        console.error("Auth restore failed:", error);
+
+        // token invalid → remove it
+        dispatch(logout());
       }
     };
 
-    testLogin();
-  }, []);
+    initAuth();
+  }, [dispatch]);
 
   return <AppRoutes />;
 }

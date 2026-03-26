@@ -5,4 +5,8 @@ export const ENDPOINTS = {
         LOGIN: "/auth/login",
         REGISTER: "/auth/register",
     },
+
+    USER: {
+        GET_USER: "/users/me",
+    }
 }

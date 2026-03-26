@@ -10,5 +10,10 @@ export const authApi = {
     register: async (data) => {
         const res = await apiClient.post(ENDPOINTS.AUTH.REGISTER, data);
         return res.data;
+    },
+
+    getMe: async () => {
+        const res = await apiClient.get(ENDPOINTS.USER.GET_USER);
+        return res.data;
     }
 }
