@@ -1,21 +1,30 @@
-import { Route, Routes } from "react-router-dom"
+import { createBrowserRouter } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import LoginPage from "../features/auth/pages/LoginPage";
+import RegistrationPage from "../features/auth/pages/RegistrationPage";
+import App from "./App";
 
-const Home = () => <h1>Home</h1>;
-const Register = () => <h1>Register Page</h1>;
-const NotFound = () => <h1>404 Not Found</h1>;
-
-const AppRoutes = () => {
-    return (
-        <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<Register />} />
-
-            <Route path="*" element={<NotFound />} />
-        </Routes>
-    )
-}
-
-export default AppRoutes;
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "register",
+        element: <RegistrationPage />,
+      },
+      {
+        path: "*",
+        element: <NotFound />,
+      },
+    ],
+  },
+]);

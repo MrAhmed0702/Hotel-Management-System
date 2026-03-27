@@ -5,8 +5,7 @@ const initialState = {
     token: localStorage.getItem("token") || null,
     isAuthenticated: false,
     isLoading: true,
-
-}
+};
 
 const authSlice = createSlice({
     name: "auth",
@@ -30,7 +29,7 @@ const authSlice = createSlice({
             localStorage.removeItem("token");
         }
     }
-});
+})
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginSuccess, logout} = authSlice.actions;
 export default authSlice.reducer;

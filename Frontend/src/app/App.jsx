@@ -1,42 +1,36 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess, logout } from "../features/auth/authSlice";
-import { authApi } from "../features/auth/api/authApi";
-import AppRoutes from "./routes";
+import { Outlet } from "react-router-dom";
+import { useAuthQuery } from "../features/auth/api/useAuthQuery";
 
 function App() {
   const dispatch = useDispatch();
+  const token = localStorage.getItem("token");
+
+  const { data, isSuccess, isLoading, isError } = useAuthQuery(!!token);
+
+  if (isLoading) return <p>Loading...</p>;
 
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem("token");
+    if(!token){
+      dispatch(logout());
+      return;
+    }
 
-      if (!token) {
-        dispatch(logout());
-        return;
-      }
+    if(isSuccess){
+      dispatch(loginSuccess({
+        user: data.data,
+        token,
+      }))
+    }
 
-      try {
-        const res = await authApi.getMe();
+    if(isError){
+      dispatch(logout())
+    }
+  }, [token, isSuccess, isError, data, dispatch]);
 
-        dispatch(
-          loginSuccess({
-            user: res.data,
-            token,
-          })
-        );
-      } catch (error) {
-        console.error("Auth restore failed:", error);
-
-        // token invalid → remove it
-        dispatch(logout());
-      }
-    };
-
-    initAuth();
-  }, [dispatch]);
-
-  return <AppRoutes />;
+  return <Outlet />;
 }
 
 export default App;
