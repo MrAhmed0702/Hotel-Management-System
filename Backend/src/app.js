@@ -2,6 +2,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import compression from "compression";
+import mongoSanitize from "express-mongo-sanitize";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
 import hotelRoutes from "./modules/hotels/hotel.routes.js";
@@ -18,6 +20,23 @@ app.use("/webhooks", express.raw({ type: "application/json" }), webhookRoutes);
 
 app.use(helmet());
 
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+}));
+
+app.use(mongoSanitize());
+
+// Performance
+app.use(compression());
+
+// Body parsers
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Static
+app.use("/uploads", express.static("uploads"));
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -26,12 +45,6 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-
-app.use(express.json());
-
-app.use(cors());
-
-app.use("/uploads", express.static("uploads"));
 
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -54,7 +67,10 @@ app.use((err, req, res, next) => {
 
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || "Internal Server Error",
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Something went wrong"
+        : err.message,
   });
 });
 

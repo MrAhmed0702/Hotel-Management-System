@@ -14,7 +14,7 @@ export const registerSchema = Joi.object({
 
     gender: Joi.string().valid("male", "female").required(),
 
-    profilePicture: Joi.any(),
+    profilePicture: Joi.any().optional(),
 })
 
 export const loginSchema = Joi.object({

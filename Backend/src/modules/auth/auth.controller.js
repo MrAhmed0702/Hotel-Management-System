@@ -1,23 +1,37 @@
 import { registerUser, loginUser } from "./auth.service.js";
 
-export const register = async (req, res) => {
-  // 🔥 get file
-  const profilePicture = req.file
-    ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
-    : undefined;
+export const register = async (req, res, next) => {
+  try {
+    let profilePicture;
 
-  const user = await registerUser({
-    ...req.body,
-    profilePicture,
-  });
+    if (req.file && req.file.filename) {
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+      profilePicture = `${baseUrl}/uploads/${req.file.filename}`;
+    } else {
+      const { firstName, lastName } = req.body;
+      const name = `${firstName || ""} ${lastName || ""}`.trim() || "User";
 
-  const safeUser = user.toObject();
+      profilePicture = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+    }
 
-  res.status(201).json({
-    success: true,
-    message: "User registered successfully",
-    data: safeUser,
-  });
+    console.log("Uploaded file:", req.file?.filename);
+
+    const user = await registerUser({
+      ...req.body,
+      profilePicture,
+    });
+
+    const safeUser = user.toObject();
+
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      data: safeUser,
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const login = async (req, res) => {
