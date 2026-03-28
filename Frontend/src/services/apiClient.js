@@ -27,6 +27,8 @@ apiClient.interceptors.response.use(
 
             if (status === 401) {
                 console.error("Unauthorized - redirect to login");
+                localStorage.removeItem("token");
+                window.location.href = "/login";
             }
 
             if (status === 500) {

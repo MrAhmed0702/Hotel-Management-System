@@ -1,36 +1,43 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useLocation, Outlet } from "react-router-dom";
 import { loginSuccess, logout } from "../features/auth/authSlice";
-import { Outlet } from "react-router-dom";
 import { useAuthQuery } from "../features/auth/api/useAuthQuery";
+import Navbar from "../components/layout/Navbar";
 
 function App() {
   const dispatch = useDispatch();
+  const location = useLocation();
   const token = localStorage.getItem("token");
 
   const { data, isSuccess, isLoading, isError } = useAuthQuery(!!token);
 
-  if (isLoading) return <p>Loading...</p>;
-
   useEffect(() => {
-    if(!token){
+    if (!token) return;
+
+    if (isSuccess) {
+      dispatch(
+        loginSuccess({
+          user: data.data,
+          token,
+        }),
+      );
+    }
+
+    if (isError) {
       dispatch(logout());
-      return;
-    }
-
-    if(isSuccess){
-      dispatch(loginSuccess({
-        user: data.data,
-        token,
-      }))
-    }
-
-    if(isError){
-      dispatch(logout())
     }
   }, [token, isSuccess, isError, data, dispatch]);
 
-  return <Outlet />;
+  const hideNavbarRoutes = ["/login", "/register"];
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
+
+  return (
+    <>
+      {showNavbar && <Navbar />}
+      {isLoading ? <p>Loading...</p> : <Outlet />}
+    </>
+  );
 }
 
 export default App;

@@ -2,8 +2,9 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from "react-redux"
 import { store } from './app/store.js'
 import { RouterProvider } from 'react-router-dom'
-import './index.css'
-import { router } from "./app/routes.jsx"
+import './styles/index.css'
+import './styles/variables.css'
+import { router } from "./app/Routes.jsx"
 import { QueryClient, QueryClientProvider} from "@tanstack/react-query"
 
 const queryClient = new QueryClient();
