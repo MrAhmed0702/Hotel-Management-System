@@ -3,7 +3,6 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import compression from "compression";
-import mongoSanitize from "express-mongo-sanitize";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
 import hotelRoutes from "./modules/hotels/hotel.routes.js";
@@ -18,14 +17,14 @@ const app = express();
 
 app.use("/webhooks", express.raw({ type: "application/json" }), webhookRoutes);
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin"},
+}));
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true,
 }));
-
-app.use(mongoSanitize());
 
 // Performance
 app.use(compression());
@@ -39,7 +38,7 @@ app.use("/uploads", express.static("uploads"));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false
 });

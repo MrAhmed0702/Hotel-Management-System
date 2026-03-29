@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post(
   "/register",
-  upload.single("photo"), // 🔥 THIS IS IMPORTANT
+  upload.single("profilePicture"), // 🔥 THIS IS IMPORTANT
   validateFileContent, // 🔥 validate file content before processing
   validate(registerSchema),
   register
