@@ -43,7 +43,7 @@ const RegistrationPage = () => {
 
       const res = await authApi.register(formData);
 
-      dispatch(registration({ user: res.data.data }));
+      dispatch(registration({ user: res.data }));
 
       toast.success("Registration successful 🚀");
       navigate("/login");

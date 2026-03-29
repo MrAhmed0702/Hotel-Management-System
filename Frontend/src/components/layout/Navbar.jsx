@@ -56,12 +56,6 @@ const Navbar = () => {
     }
   }, [isAuthenticated]);
 
-  const handleClick = (item) => {
-    if (item === "Logout") {
-      dispatch(logout());
-    }
-  };
-
   return (
     <div className="w-full h-16 flex items-center justify-between px-8 bg-[#FBF9FB] text-[#1A2B44] border-b border-gray-200">
       {/* LEFT */}
