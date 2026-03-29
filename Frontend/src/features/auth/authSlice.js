@@ -5,13 +5,18 @@ const initialState = {
     token: localStorage.getItem("token") || null,
     isAuthenticated: false,
     isLoading: true,
-
-}
+};
 
 const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
+        registration: (state, action) => {
+            state.user = action.payload.user;
+            state.isAuthenticated = false;
+            state.isLoading = false;
+        },
+
         loginSuccess: (state, action) => {
             state.user = action.payload.user;
             state.token = action.payload.token;
@@ -30,7 +35,7 @@ const authSlice = createSlice({
             localStorage.removeItem("token");
         }
     }
-});
+})
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { registration, loginSuccess, logout} = authSlice.actions;
 export default authSlice.reducer;

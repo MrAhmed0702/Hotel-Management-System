@@ -1,42 +1,43 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useLocation, Outlet } from "react-router-dom";
 import { loginSuccess, logout } from "../features/auth/authSlice";
-import { authApi } from "../features/auth/api/authApi";
-import AppRoutes from "./routes";
+import { useAuthQuery } from "../features/auth/api/useAuthQuery";
+import Navbar from "../components/layout/Navbar";
 
 function App() {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const token = localStorage.getItem("token");
+
+  const { data, isSuccess, isLoading, isError } = useAuthQuery(!!token);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem("token");
+    if (!token) return;
 
-      if (!token) {
-        dispatch(logout());
-        return;
-      }
+    if (isSuccess) {
+      dispatch(
+        loginSuccess({
+          user: data.data,
+          token,
+        }),
+      );
+    }
 
-      try {
-        const res = await authApi.getMe();
+    if (isError) {
+      dispatch(logout());
+    }
+  }, [token, isSuccess, isError, data, dispatch]);
 
-        dispatch(
-          loginSuccess({
-            user: res.data,
-            token,
-          })
-        );
-      } catch (error) {
-        console.error("Auth restore failed:", error);
+  const hideNavbarRoutes = ["/login", "/register"];
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
 
-        // token invalid → remove it
-        dispatch(logout());
-      }
-    };
-
-    initAuth();
-  }, [dispatch]);
-
-  return <AppRoutes />;
+  return (
+    <>
+      {showNavbar && <Navbar />}
+      {isLoading ? <p>Loading...</p> : <Outlet />}
+    </>
+  );
 }
 
 export default App;

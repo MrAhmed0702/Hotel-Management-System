@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Libre Caslon Text", serif;
+  --font-body: "EB Garamond", serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+.input {
+  @apply w-full py-2 pr-3 rounded-md border border-gray-300 bg-white 
+  focus:outline-none focus:ring-2 focus:ring-[#C5A059];
+}
+
+.input-icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none;
+}
