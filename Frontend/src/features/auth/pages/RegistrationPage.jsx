@@ -6,6 +6,7 @@ import { authApi } from "../api/authApi";
 import { registration } from "../authSlice";
 import reg from "../../../assets/AuthImages/reg.png";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 
 import { User, Mail, Phone, Lock, Calendar, MoveLeft } from "lucide-react";
 
@@ -22,18 +23,23 @@ const RegistrationPage = () => {
 
   const onSubmit = async (data) => {
     try {
+      if (data.password !== data.confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
       const formData = new FormData();
 
-      // append all fields
-      Object.keys(data).forEach((key) => {
-        if (key === "photo") {
-          if (data.photo?.[0]) {
-            formData.append("photo", data.photo[0]);
-          }
-        } else {
-          formData.append(key, data[key]);
-        }
-      });
+      formData.append("firstName", data.firstName);
+      formData.append("lastName", data.lastName);
+      formData.append("email", data.email);
+      formData.append("phoneNumber", data.phoneNumber);
+      formData.append("dateOfBirth", data.dateOfBirth);
+      formData.append("gender", data.gender);
+      formData.append("password", data.password);
+
+      if (data.photo?.[0]) {
+        formData.append("profilePicture", data.photo[0]);
+      }
 
       const res = await authApi.register(formData);
 
@@ -48,97 +54,76 @@ const RegistrationPage = () => {
   };
 
   return (
-    <div className="w-full h-screen flex bg-white">
-      {/* LEFT SIDE */}
-      <div className="w-1/2 h-full relative hidden lg:block">
-        {/* LOGO (GRADIENT FIXED) */}
+    <div className="w-full min-h-screen flex overflow-y-auto bg-gradient-to-br from-[#F8F6F2] via-white to-[#F3EFE7]">
+      {/* LEFT */}
+      <div className="w-1/2 relative hidden lg:block">
         <div className="absolute inset-5 z-20">
-          <h1
-            className="inline-block text-2xl font-semibold tracking-wide 
-          bg-gradient-to-r from-[#E6D3A3] via-[#D4AF37] to-[#C5A059] 
-          bg-clip-text text-transparent drop-shadow-sm"
-          >
+          <h1 className="text-2xl font-semibold tracking-wide bg-gradient-to-r from-[#E6D3A3] via-[#D4AF37] to-[#C5A059] bg-clip-text text-transparent">
             LuxeStay
           </h1>
         </div>
 
-        {/* IMAGE */}
-        <img
-          src={reg}
-          alt="Luxury Hotel"
-          className="w-full h-full object-cover"
-        />
+        <img src={reg} className="w-full h-full object-cover" />
 
-        {/* OVERLAY */}
-        <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center text-white px-10">
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white px-10">
           <div className="max-w-md text-center">
-            <h1 className="text-4xl font-semibold leading-tight">
+            <h1 className="text-4xl font-semibold">
               Orchestrate <br />
-              <span className="text-[#C5A059]">Excellence</span> in Every Stay
+              <span className="text-[#C5A059]">Excellence</span>
             </h1>
             <p className="mt-4 text-sm text-gray-200">
-              Join the network of elite properties using LuxeStay to transform
-              guest experiences into lasting memories.
+              Transform guest experiences into lasting memories.
             </p>
           </div>
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
-      <div className="relative w-full lg:w-1/2 flex items-center justify-center bg-white">
-        {/* GRADIENT BACKGROUND */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F5F1EA]/70 via-[#FBF9FB]/40 to-transparent pointer-events-none" />
-
-        {/* BACK BUTTON */}
+      {/* RIGHT */}
+      <div className="relative w-full lg:w-1/2 flex items-center justify-center px-12">
         <button
           onClick={() => navigate("/")}
-          className="absolute top-8 right-10 flex items-center gap-1 text-gray-600 hover:text-[#C5A059] transition"
+          className="absolute top-8 right-10 flex items-center gap-1 text-gray-600 hover:text-[#C5A059]"
         >
           <MoveLeft size={18} />
-          <span className="text-sm">Back to website</span>
+          <span className="text-sm">Back</span>
         </button>
 
-        {/* FORM */}
-        <div className="relative w-full max-w-md p-8">
-          {/* HEADER */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-[#1A2B44]">
-              Create your account
-            </h2>
-            <p className="text-sm text-gray-500">
-              Start your journey with LuxeStay
-            </p>
-          </div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl border"
+        >
+          <div className="h-1 w-16 bg-gradient-to-r from-[#D4AF37] to-[#C5A059] mb-4" />
+
+          <h2 className="text-3xl font-bold text-[#1A2B44]">Create Account</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Start your LuxeStay journey
+          </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Avatar */}
             <div className="flex items-center gap-4">
-              {/* Avatar Preview */}
-              <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+              <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
                 {watch("photo")?.[0] ? (
                   <img
                     src={URL.createObjectURL(watch("photo")[0])}
-                    alt="preview"
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-sm text-gray-500">Photo</span>
+                  <div className="flex items-center justify-center h-full text-xs text-gray-500">
+                    Photo
+                  </div>
                 )}
               </div>
 
-              {/* Upload Button */}
-              <label className="cursor-pointer text-sm text-[#C5A059] hover:underline">
+              <label className="cursor-pointer text-sm text-[#C5A059]">
                 Upload Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  {...register("photo")}
-                  className="hidden"
-                />
+                <input type="file" {...register("photo")} hidden />
               </label>
             </div>
 
             {/* NAME */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 items-start">
               <Input
                 icon={User}
                 placeholder="First Name"
@@ -153,51 +138,65 @@ const RegistrationPage = () => {
               />
             </div>
 
+            {/* EMAIL */}
             <Input
               icon={Mail}
               placeholder="Email"
-              register={register("email", {
-                required: "Required",
-                pattern: { value: /^\S+@\S+$/i, message: "Invalid email" },
-              })}
+              register={register("email", { required: "Required" })}
               error={errors.email}
             />
 
+            {/* PHONE */}
             <Input
               icon={Phone}
               placeholder="Phone Number"
-              register={register("phoneNumber", {
-                required: "Required",
-                pattern: { value: /^[0-9]{10}$/, message: "Invalid number" },
-              })}
+              register={register("phoneNumber", { required: "Required" })}
               error={errors.phoneNumber}
             />
 
             {/* DOB + GENDER */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 items-start">
               <Input
                 type="date"
                 icon={Calendar}
-                register={register("dateOfBirth")}
+                register={register("dateOfBirth", { required: "Required" })}
+                error={errors.dateOfBirth}
               />
-              <select {...register("gender")} className="input">
-                <option value="">Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
+
+              {/* SELECT FIXED */}
+              <div>
+                <div className="h-[42px] relative">
+                  <select
+                    {...register("gender", { required: "Required" })}
+                    className={`w-full h-full border rounded-lg px-3 outline-none
+                    ${errors.gender ? "border-red-500" : "border-gray-400"}`}
+                  >
+                    <option value="">Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+
+                <div className="min-h-[18px] mt-1">
+                  {errors.gender && (
+                    <p className="text-xs text-red-500">
+                      {errors.gender.message}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
+            {/* PASSWORD */}
             <Input
               type="password"
               icon={Lock}
               placeholder="Password"
-              register={register("password", {
-                required: "Required",
-                minLength: { value: 6, message: "Min 6 chars" },
-              })}
+              register={register("password", { required: "Required" })}
               error={errors.password}
             />
 
+            {/* CONFIRM */}
             <Input
               type="password"
               icon={Lock}
@@ -209,25 +208,22 @@ const RegistrationPage = () => {
               error={errors.confirmPassword}
             />
 
-            {/* BUTTON */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#1A2B44] text-white py-2 rounded-md 
-              hover:bg-[#142033] transition disabled:opacity-50"
+              className="w-full bg-[#1A2B44] text-white py-3 rounded-lg"
             >
-              {isSubmitting ? "Creating Account..." : "Register Account →"}
+                {isSubmitting ? "Registering..." : "Register →"}
             </button>
 
-            {/* FOOTER */}
             <p className="text-sm text-center text-gray-500">
               Already have an account?{" "}
-              <Link to="/login" className="text-[#C5A059] hover:underline">
-                Log in
+              <Link to="/login" className="text-[#C5A059]">
+                Login
               </Link>
             </p>
           </form>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -235,18 +231,29 @@ const RegistrationPage = () => {
 
 export default RegistrationPage;
 
-/* 🔥 REUSABLE INPUT */
+/* 🔥 PERFECT INPUT */
 const Input = ({ icon: Icon, type = "text", placeholder, register, error }) => (
-  <div className="relative">
-    {Icon && <Icon className="input-icon" size={18} />}
+  <div>
+    <div className="relative h-[42px]">
+      {Icon && (
+        <Icon
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+          size={18}
+        />
+      )}
 
-    <input
-      type={type}
-      placeholder={placeholder}
-      {...register}
-      className={`input pl-10 ${error ? "border-red-500 focus:ring-red-500" : ""}`}
-    />
+      <input
+        type={type}
+        placeholder={placeholder}
+        {...register}
+        className={`w-full h-full border rounded-lg pl-10 pr-3 outline-none
+        ${error ? "border-red-500" : "border-gray-400 focus:border-[#C5A059]"}`}
+      />
+    </div>
 
-    {error && <p className="text-xs text-red-500 mt-1">{error.message}</p>}
+    {/* RESERVED SPACE */}
+    <div className="min-h-[18px] mt-1">
+      {error && <p className="text-xs text-red-500">{error.message}</p>}
+    </div>
   </div>
 );
