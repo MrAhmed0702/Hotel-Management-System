@@ -21,7 +21,7 @@ export const register = async (req, res, next) => {
       profilePicture,
     });
 
-    const safeUser = user.toObject();
+    const { password, ...safeUser } = user.toObject();
 
     res.status(201).json({
       success: true,
