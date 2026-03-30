@@ -45,7 +45,7 @@ export const getHotelById = async (req, res) => {
 };
 
 export const updateHotel = async (req, res) => {
-    const hotel = await updateHotelService(req.params.id, req.body);
+    const hotel = await updateHotelService(req.params.id, req.validatedData || req.body);
     
     res.status(200).json({
         success: true,

@@ -7,7 +7,7 @@ import {
 } from "./room.service.js";
 
 export const createRoom = async (req, res) => {
-  const room = await createRoomService(req.params.hotelId, req.body);
+  const room = await createRoomService(req.params.hotelId, req.validatedData || req.body);
 
   res.status(201).json({
     success: true,
@@ -50,7 +50,7 @@ export const getRoomById = async (req, res) => {
 
 export const updateRoom = async (req, res) => {
   const { roomId, hotelId } = req.params;
-  const room = await updateRoomService(roomId, hotelId, req.body);
+  const room = await updateRoomService(roomId, hotelId, req.validatedData || req.body);
 
   res.status(200).json({
     success: true,

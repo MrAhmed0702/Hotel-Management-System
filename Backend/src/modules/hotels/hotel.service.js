@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import * as hotelRepo from "./hotel.repository.js";
+import ApiError from "../../utils/apiError.js"
 
 export const createHotelService = async (id, hotelData) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error("Invalid hotel ID");
+    throw new ApiError(400, "Invalid hotel ID");
   }
 
   const { hotelName, address } = hotelData;
@@ -14,7 +15,7 @@ export const createHotelService = async (id, hotelData) => {
   );
 
   if (hotelExists) {
-    throw new Error("Hotel Already Exists");
+    throw new ApiError(400, "Hotel Already Exists");
   }
 
   const hotel = await hotelRepo.createHotel({
@@ -80,7 +81,7 @@ export const getAllHotelsService = async (filters, pagination, sort) => {
 
 export const getHotelByIdService = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error("Invalid hotel ID");
+    throw new ApiError(400, "Invalid hotel ID");
   }
 
   const hotel = await hotelRepo
@@ -89,7 +90,7 @@ export const getHotelByIdService = async (id) => {
     .lean();
 
   if (!hotel) {
-    throw new Error("Hotel not found");
+    throw new ApiError(404, "Hotel not found");;
   }
 
   return hotel;
@@ -97,12 +98,12 @@ export const getHotelByIdService = async (id) => {
 
 export const updateHotelService = async (id, updateData) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error("Invalid Hotel ID");
+    throw new ApiError(400, "Invalid Hotel ID");
   }
 
   const hotel = await hotelRepo.findHotelById(id);
 
-  if (!hotel) throw new Error("Hotel not found");
+  if (!hotel) throw new ApiError(404, "Hotel not found");
 
   const allowedUpdate = [
     "hotelName",
@@ -119,7 +120,7 @@ export const updateHotelService = async (id, updateData) => {
   );
 
   if (Object.keys(filteredData).length === 0)
-    throw new Error("No valid fields provided for update");
+    throw new ApiError(400, "No valid fields provided for update");
 
   Object.assign(hotel, filteredData);
 
@@ -130,15 +131,15 @@ export const updateHotelService = async (id, updateData) => {
 
 export const deleteHotelService = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error("Invalid Hotel ID");
+    throw new ApiError(400, "Invalid Hotel ID");
   }
 
   const hotel = await hotelRepo.findHotelById(id);
 
-  if (!hotel) throw new Error("Hotel not found");
+  if (!hotel) throw new ApiError(404, "Hotel not found");
 
   if (hotel.isDeleted) {
-    throw new Error("Hotel already deleted");
+    throw new ApiError(400, "Hotel already deleted");
   }
 
   hotel.isDeleted = true;

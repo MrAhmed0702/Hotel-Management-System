@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 import * as roomRepo from "./room.repository.js";
+import ApiError from "../../utils/apiError.js"
 
 export const createRoomService = async (hotelId, roomData) => {
   if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new Error("Invalid hotel ID");
+    throw new ApiError(400, "Invalid hotel ID");
   }
 
   const hotel = await roomRepo.existsHotelById(hotelId);
 
-  if (!hotel) throw new Error("Hotel Doesn't Exist");
+  if (!hotel) throw new ApiError(404, "Hotel not found");;
 
   try {
     const room = await roomRepo.createRoom({
@@ -19,7 +20,7 @@ export const createRoomService = async (hotelId, roomData) => {
     return room;
   } catch (err) {
     if (err.code === 11000) {
-      throw new Error("Room number already exists for this hotel");
+      throw new ApiError(400, "Room number already exists for this hotel");
     }
     throw err;
   }
@@ -27,12 +28,12 @@ export const createRoomService = async (hotelId, roomData) => {
 
 export const getRoomService = async (filtered, hotelId) => {
     if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-        throw new Error("Invalid hotel ID");
+        throw new ApiError(400, "Invalid hotel ID");
     }
 
     const hotel = await roomRepo.existsHotelById(hotelId);
 
-    if (!hotel) throw new Error("Hotel Doesn't Exist");
+    if (!hotel) throw new ApiError(404, "Hotel not found");;
 
     const { price, capacity, type, status } = filtered;
 
@@ -50,32 +51,32 @@ export const getRoomService = async (filtered, hotelId) => {
 
 export const getRoomByIdService = async (roomId, hotelId) => {
   if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
-    throw new Error("Invalid ID");
+    throw new ApiError(400, "Invalid ID");
   }
 
   const hotel = await roomRepo.existsHotelById(hotelId);
 
-  if(!hotel) throw new Error("Hotel Doesn't Exists");
+  if(!hotel) throw new ApiError(404, "Hotel not found");;
 
   const room = await roomRepo.findRoomById(roomId, hotelId);
 
-  if(!room) throw new Error("Room Doesn't Exists");
+  if(!room) throw new ApiError(404, "Room not found");
 
   return room;
 }
 
 export const updateRoomService = async (roomId, hotelId, roomUpdatedData) => {
   if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
-    throw new Error("Invalid ID");
+    throw new ApiError(400, "Invalid ID");
   }
 
   const hotel = await roomRepo.existsHotelById(hotelId);
 
-  if(!hotel) throw new Error("Hotel Doesn't Exists");
+  if(!hotel) throw new ApiError(404, "Hotel not found");
 
   const room = await roomRepo.findRoomById(roomId, hotelId);
 
-  if(!room) throw new Error("Room Doesn't Exists");
+  if(!room) throw new ApiError(404, "Room not found");
 
   const allowedUpdates = ["type", "price", "capacity", "description", "amenities", "status"];
 
@@ -84,7 +85,7 @@ export const updateRoomService = async (roomId, hotelId, roomUpdatedData) => {
   )
 
   if(Object.keys(filteredData).length === 0){
-    throw new Error(`No valid fields provided for update`);
+    throw new ApiError(400, `No valid fields provided for update`);
   }
 
   Object.assign(room, filteredData);
@@ -96,16 +97,16 @@ export const updateRoomService = async (roomId, hotelId, roomUpdatedData) => {
 
 export const deleteRoomService = async (roomId, hotelId) => {
   if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
-    throw new Error("Invalid ID");
+    throw new ApiError(400, "Invalid ID");
   }
 
   const hotel = await roomRepo.existsHotelById(hotelId);
 
-  if(!hotel) throw new Error("Hotel Doesn't Exists");
+  if(!hotel) throw new ApiError(404, "Hotel not found");
 
   const room = await roomRepo.findRoomById(roomId, hotelId);
 
-  if(!room) throw new Error("Room Doesn't Exists");
+  if(!room) throw new ApiError(404, "Room not found");
 
   await roomRepo.deleteRoom(room);
 

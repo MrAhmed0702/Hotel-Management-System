@@ -17,14 +17,18 @@ const app = express();
 
 app.use("/webhooks", express.raw({ type: "application/json" }), webhookRoutes);
 
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin"},
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
 
 // Performance
 app.use(compression());
@@ -40,7 +44,7 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
 app.use(limiter);
@@ -48,7 +52,7 @@ app.use(limiter);
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "OK",
-    message: "API is running"
+    message: "API is running",
   });
 });
 
@@ -62,13 +66,58 @@ app.use("/bookings/:bookingId/payments", createPaymentRoutes);
 app.use("/payments", paymentRoutes);
 
 app.use((err, req, res, next) => {
-  console.error(err);
+  // 🔍 Logging (structured)
+  console.error({
+    message: err.message,
+    stack: err.stack,
+    path: req.originalUrl,
+    method: req.method,
+  });
 
-  res.status(err.statusCode || 500).json({
+  // 🧠 Known (operational) errors
+  if (err instanceof ApiError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      errors: err.errors || [],
+    });
+  }
+
+  // 🔥 Mongoose duplicate key (VERY IMPORTANT)
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+
+    return res.status(400).json({
+      success: false,
+      message: `${field} already exists`,
+    });
+  }
+
+  // 🔥 Mongoose validation error
+  if (err.name === "ValidationError") {
+    const errors = Object.values(err.errors).map((e) => e.message);
+
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      errors,
+    });
+  }
+
+  // 🔥 Cast error (invalid ObjectId)
+  if (err.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid ID format",
+    });
+  }
+
+  // ❌ Unknown error (fallback)
+  return res.status(500).json({
     success: false,
     message:
       process.env.NODE_ENV === "production"
-        ? "Something went wrong"
+        ? "Internal Server Error"
         : err.message,
   });
 });

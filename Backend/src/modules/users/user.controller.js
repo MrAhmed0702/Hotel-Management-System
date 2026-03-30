@@ -11,7 +11,7 @@ export const getUserDetails = async (req, res) => {
 }
 
 export const updateUserDetails = async (req, res) => {
-    const updatedUser = await updateUserById(req.user.id, req.body);
+    const updatedUser = await updateUserById(req.user.id, req.validatedData);
 
     res.status(200).json({
         success: true,

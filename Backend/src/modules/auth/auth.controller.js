@@ -8,7 +8,7 @@ export const register = async (req, res, next) => {
       const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
       profilePicture = `${baseUrl}/uploads/${req.file.filename}`;
     } else {
-      const { firstName, lastName } = req.body;
+      const { firstName, lastName } = req.validatedBody;
       const name = `${firstName || ""} ${lastName || ""}`.trim() || "User";
 
       profilePicture = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
@@ -17,7 +17,7 @@ export const register = async (req, res, next) => {
     console.log("Uploaded file:", req.file?.filename);
 
     const user = await registerUser({
-      ...req.body,
+      ...req.validatedBody,
       profilePicture,
     });
 
@@ -35,7 +35,7 @@ export const register = async (req, res, next) => {
 };
 
 export const login = async (req, res) => {
-  const { user, token } = await loginUser(req.body);
+  const { user, token } = await loginUser(req.validatedData);
 
   const { password, ...safeUser } = user.toObject();
 

@@ -93,14 +93,17 @@ const userSchema = new Schema(
   },
 );
 
-userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
-    return;
+userSchema.pre("save", async function (next) {
+  try {
+    if (!this.isModified("password")) return next();
+
+    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+    this.password = await bcrypt.hash(this.password, saltRounds);
+
+    next();
+  } catch (err) {
+    next(err);
   }
-
-  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
-
-  this.password = await bcrypt.hash(this.password, saltRounds);
 });
 
 userSchema.methods.comparePassword = async function (password) {
@@ -124,5 +127,7 @@ userSchema.set("toObject", {
     return ret;
   },
 });
+
+userSchema.index({ isDeleted: 1 });
 
 export default model("User", userSchema);
