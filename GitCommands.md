@@ -81,6 +81,9 @@ git checkout -b feature/frontend-apiLayer
 
 # Delete a local branch after it has been merged
 git branch -d feature/frontend-apiLayer
+
+# Force delete a branch (even if not merged)
+git branch -D feature/frontend-apiLayer
 ```
 
 ---
@@ -221,6 +224,21 @@ git reflog
 
 # Show who changed each line of a file
 git blame <file>
+```
+
+---
+
+## Cleaning Up Deleted Remote Branches
+
+```bash
+# Fetch latest updates and remove deleted remote-tracking branches
+git fetch --prune
+
+# Remove stale references for a specific remote
+git remote prune origin
+
+# Show remote details including stale branches
+git remote show origin
 ```
 
 ---
