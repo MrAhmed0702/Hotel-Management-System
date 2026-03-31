@@ -141,6 +141,9 @@ git log --oneline
 # Show log with branch/merge graph
 git log --oneline --graph --all
 
+# show log
+git log --oneline --graph --decorate --all
+
 # Show details of a specific commit
 git show <commit-sha>
 
@@ -239,6 +242,17 @@ git remote prune origin
 
 # Show remote details including stale branches
 git remote show origin
+```
+
+---
+
+## Comparing your branch with main
+
+```bash
+#To know how your branch is up to date with the main branch
+git rev-list --left-right --count HEAD...origin/main
+#Left number = commits you are ahead
+#Right number = commits you are behind
 ```
 
 ---
