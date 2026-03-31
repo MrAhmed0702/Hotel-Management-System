@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import * as hotelRepo from "./hotel.repository.js";
-import ApiError from "../../utils/apiError.js"
+import { ApiError } from "../../utils/apiError.js"
 
 export const createHotelService = async (id, hotelData) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {

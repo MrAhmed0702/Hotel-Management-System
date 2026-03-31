@@ -12,6 +12,7 @@ import bookingRoutes from "./modules/bookings/booking.routes.js";
 import createPaymentRoutes from "./modules/payments/createPayment.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
 import webhookRoutes from "./modules/payments/webhooks/webhook.routes.js";
+import { ApiError } from "./utils/apiError.js";
 
 const app = express();
 

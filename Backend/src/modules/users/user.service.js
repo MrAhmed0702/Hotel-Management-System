@@ -1,6 +1,6 @@
 import * as userRepo from "./user.repository.js";
 import User from "./user.model.js";
-import { ApiError } from "../../utils/ApiError.js";
+import { ApiError } from "../../utils/apiError.js";
 
 export const getUserById = async (id) => {
   const user = await userRepo.findUserById(id);

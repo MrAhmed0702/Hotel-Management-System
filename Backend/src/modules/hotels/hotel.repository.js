@@ -15,12 +15,16 @@ export const createHotel = (hotelData) => {
 };
 
 export const findHotels = (query, projection, skip, limit, sortOptions) => {
-  return Hotel.find(query)
-    .select(projection)
+  let queryBuilder = Hotel.find(query)
     .skip(skip)
     .limit(limit)
-    .sort(sortOptions)
-    .lean();
+    .sort(sortOptions);
+
+  if (Object.keys(projection).length > 0) {
+    queryBuilder = queryBuilder.select(projection);
+  }
+
+  return queryBuilder.lean();
 };
 
 export const countHotels = (query) => {
