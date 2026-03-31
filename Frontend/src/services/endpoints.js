@@ -8,5 +8,13 @@ export const ENDPOINTS = {
 
     USER: {
         GET_USER: "/users/me",
+    },
+
+    HOTEL: {
+        GET_ALL_HOTELS: "/hotels",
+        GET_HOTEL_BY_ID: (id) => `/hotels/${id}`,
+        CREATE_HOTEL: "/hotels",
+        UPDATE_HOTEL: (id) => `/hotels/${id}`,
+        DELETE_HOTEL: (id) => `/hotels/${id}`,
     }
 }

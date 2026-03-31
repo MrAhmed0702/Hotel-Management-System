@@ -1,11 +1,26 @@
 import React from 'react'
+import HeroSection from '../components/HeroSection'
+import Categories from '../components/Categories'
+import Destinations from '../components/Destinations'
+import FeaturedHotels from '../components/FeaturedHotels'
+import TrustSection from '../components/TrustSection'
+import ExperienceSection from '../components/ExperienceSection'
+import Testimonials from '../components/Testimonials'
+import CTASection from '../components/CTASection'
 
 const HomePage = () => {
   return (
-    <div className='w-full h-screen flex justify-center items-center'>
-      <h1 className='text-6xl font-light text-[#1A2B44]'>Welcome to LuxeStay</h1>
-    </div>
-  )
+    <>
+      <HeroSection />
+      <Categories />
+      <Destinations />
+      <FeaturedHotels />
+      <TrustSection />
+      <ExperienceSection />
+      <Testimonials />
+      <CTASection />
+    </>
+  );
 }
 
 export default HomePage
