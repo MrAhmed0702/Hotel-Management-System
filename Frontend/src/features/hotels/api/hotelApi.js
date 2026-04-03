@@ -4,7 +4,7 @@ import { ENDPOINTS } from "../../../services/endpoints";
 export const hotelApi = {
     getAllHotels: async (params) => {
         const res = await apiClient.get(ENDPOINTS.HOTEL.GET_ALL_HOTELS, { params });
-        return res.data.data.data;
+        return res.data.data;
     },
 
     get_hotel_by_id: async (id) => {
