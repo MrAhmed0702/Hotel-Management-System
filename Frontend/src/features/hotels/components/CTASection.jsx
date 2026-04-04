@@ -1,11 +1,55 @@
-import React from 'react'
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import logo from "../../../assets/logo.png"
 
 const CTASection = () => {
-  return (
-    <div>
-      <h1>Call to Action Section</h1>
-    </div>
-  )
-}
+  const navigate = useNavigate();
 
-export default CTASection
+  return (
+    <footer className="bg-[#04162e] text-white py-20">
+      <div className="max-w-6xl mx-auto px-6 text-center">
+
+        {/* HEADLINE */}
+        <h2 className="text-3xl md:text-4xl font-serif mb-8">
+          Start your journey today
+        </h2>
+
+        {/* CTA BUTTON */}
+        <button
+          onClick={() => navigate("/hotels")}
+          className="bg-[#C5A059] text-[#04162e] px-8 py-3 text-sm tracking-widest font-medium hover:bg-[#b8954d] transition shadow-md"
+        >
+          SEARCH HOTELS
+        </button>
+
+        {/* FOOTER LINKS */}
+        <div className="mt-16 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400 gap-6">
+          
+          {/* LOGO */}
+          <div className="flex items-center">
+            <img 
+              src={logo}
+              className="w-30 h-30 "
+            />
+            <p className="text-white font-serif text-2xl">LuxeStay</p>
+          </div>
+
+          {/* LINKS */}
+          <div className="flex gap-6">
+            <span className="hover:text-white cursor-pointer">Privacy Policy</span>
+            <span className="hover:text-white cursor-pointer">Terms of Service</span>
+            <span className="hover:text-white cursor-pointer">Sustainability</span>
+            <span className="hover:text-white cursor-pointer">Press Kit</span>
+          </div>
+
+          {/* COPYRIGHT */}
+          <p className="text-xs">
+            © 2026 LuxeStay. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default CTASection;
