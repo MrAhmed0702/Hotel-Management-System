@@ -11,12 +11,13 @@ export const createHotel = async (req, res) => {
 }
 
 export const getAllHotels = async (req, res) => {
-  const { city, country, amenities, search, page = 1, limit = 10, sort } = req.query;
+  const { city, country, amenities, search, category, page = 1, limit = 10, sort } = req.query;
 
   const filters = {
     city,
     country,
     search,
+    category: category?.toLowerCase(),
     amenities: amenities ? amenities.split(",") : []
   };
 

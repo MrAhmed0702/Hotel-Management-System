@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { Search } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
@@ -15,6 +15,7 @@ const Navbar = () => {
   const [userData, setUserData] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
     setIsOpen((prev) => !prev);
@@ -154,7 +155,7 @@ const Navbar = () => {
                     onClick={() => {
                       setIsOpen(false);
                       dispatch(logout());
-                      window.location.reload();
+                      navigate("/login");
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
                   >

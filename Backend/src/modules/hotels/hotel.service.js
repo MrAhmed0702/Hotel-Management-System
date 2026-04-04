@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import * as hotelRepo from "./hotel.repository.js";
-import ApiError from "../../utils/apiError.js"
+import { ApiError } from "../../utils/apiError.js";
 
 export const createHotelService = async (id, hotelData) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -27,21 +27,92 @@ export const createHotelService = async (id, hotelData) => {
 };
 
 export const getAllHotelsService = async (filters, pagination, sort) => {
-  const { city, country, amenities, search } = filters;
+  const { city, country, amenities, search, category } = filters;
   const { page, limit } = pagination;
 
   const query = { status: "active" };
 
+  // ✅ BASIC FILTERS (AND)
   if (city) query["address.city"] = city.toLowerCase();
   if (country) query["address.country"] = country.toLowerCase();
-  if (amenities?.length) query.amenities = { $all: amenities };
 
-  if (search) {
-    query.$text = { $search: search };
+  if (amenities?.length) {
+    query.amenities = {
+      $all: amenities.map((a) => a.toLowerCase()),
+    };
   }
 
+  // 🧠 CATEGORY INTELLIGENCE MAP
+  const categoryMap = {
+    luxury: {
+      keywords: ["luxury", "premium", "5-star", "high-end"],
+      minRating: 4.5,
+    },
+    budget: {
+      keywords: ["budget", "cheap", "affordable"],
+      maxRating: 3.5,
+    },
+    business: {
+      keywords: ["business", "corporate", "conference"],
+    },
+    family: {
+      keywords: ["family", "kids", "spacious"],
+    },
+  };
+
+  // ================================
+  // ✅ STEP 1: TEXT SEARCH (TOP LEVEL ONLY 🚨)
+  // ================================
+  let textParts = [];
+
+  if (search) textParts.push(search);
+
+  if (category && categoryMap[category]?.keywords) {
+    textParts.push(...categoryMap[category].keywords);
+  }
+
+  if (textParts.length) {
+    query.$text = { $search: textParts.join(" ") };
+  }
+
+  // ================================
+  // ✅ STEP 2: CATEGORY SMART LOGIC (NO $text here 🚨)
+  // ================================
+  const orConditions = [];
+
+  if (category) {
+    // exact match
+    orConditions.push({ category });
+  }
+
+  if (category && categoryMap[category]) {
+    const config = categoryMap[category];
+
+    if (config.minRating) {
+      orConditions.push({
+        averageRating: { $gte: config.minRating },
+      });
+    }
+
+    if (config.maxRating) {
+      orConditions.push({
+        averageRating: { $lte: config.maxRating },
+      });
+    }
+  }
+
+  if (orConditions.length) {
+    query.$or = orConditions;
+  }
+
+  // ================================
+  // 📄 PAGINATION
+  // ================================
   const skip = (page - 1) * limit;
 
+  // ================================
+  // 📊 SORTING
+  // ================================
   const allowedSortFields = {
     rating: { averageRating: -1 },
     newest: { createdAt: -1 },
@@ -50,11 +121,15 @@ export const getAllHotelsService = async (filters, pagination, sort) => {
 
   let sortOptions = allowedSortFields[sort] || { averageRating: -1 };
 
-  if (search) {
+  // 🔥 if text search → sort by relevance
+  if (query.$text) {
     sortOptions = { score: { $meta: "textScore" } };
   }
 
-  const projection = search
+  // ================================
+  // 📦 PROJECTION
+  // ================================
+  const projection = query.$text
     ? {
         score: { $meta: "textScore" },
         hotelName: 1,
@@ -62,9 +137,13 @@ export const getAllHotelsService = async (filters, pagination, sort) => {
         address: 1,
         averageRating: 1,
         amenities: 1,
+        images: 1,
       }
     : {};
 
+  // ================================
+  // 🚀 DB CALL
+  // ================================
   const [hotels, total] = await Promise.all([
     hotelRepo.findHotels(query, projection, skip, limit, sortOptions),
     hotelRepo.countHotels(query),
@@ -90,7 +169,7 @@ export const getHotelByIdService = async (id) => {
     .lean();
 
   if (!hotel) {
-    throw new ApiError(404, "Hotel not found");;
+    throw new ApiError(404, "Hotel not found");
   }
 
   return hotel;
