@@ -34,8 +34,6 @@ const HotelsPage = () => {
   const hotels = data?.data || [];
   const totalPages = data?.totalPages || 1;
 
-  console.log(hotels);
-
   const updatePage = (newPage) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage);
@@ -80,6 +78,7 @@ const HotelsPage = () => {
             <div key={hotel._id} className="bg-white shadow rounded-xl">
               <img
                 src={hotel.images?.[0]}
+                alt={hotel.hotelName ? `${hotel.hotelName} hotel image` : "Hotel image"}
                 className="h-48 w-full object-cover"
               />
               <div className="p-4">

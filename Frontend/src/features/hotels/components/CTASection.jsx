@@ -29,6 +29,7 @@ const CTASection = () => {
           <div className="flex items-center">
             <img 
               src={logo}
+              alt="LuxeStay logo"
               className="w-40 h-40 "
             />
             <p className="text-white font-serif text-2xl">LuxeStay</p>
@@ -36,10 +37,10 @@ const CTASection = () => {
 
           {/* LINKS */}
           <div className="flex gap-6">
-            <span className="hover:text-white cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-white cursor-pointer">Terms of Service</span>
-            <span className="hover:text-white cursor-pointer">Sustainability</span>
-            <span className="hover:text-white cursor-pointer">Press Kit</span>
+            <button type="button" className="hover:text-white cursor-pointer">Privacy Policy</button>
+            <button type="button" className="hover:text-white cursor-pointer">Terms of Service</button>
+            <button type="button" className="hover:text-white cursor-pointer">Sustainability</button>
+            <button type="button" className="hover:text-white cursor-pointer">Press Kit</button>
           </div>
 
           {/* COPYRIGHT */}

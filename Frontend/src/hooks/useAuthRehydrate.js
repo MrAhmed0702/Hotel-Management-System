@@ -9,10 +9,13 @@ export const useAuthRehydrate = () => {
   const { data, isSuccess, isError, isLoading } = useAuthQuery(!!token);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      dispatch(logout());
+      return;
+    }
     if (isSuccess) dispatch(loginSuccess({ user: data.data, token }));
     if (isError) dispatch(logout());
-  }, [isSuccess, isError]);
+  }, [token, isSuccess, isError, data, dispatch]);
 
   return { isLoading };
 };

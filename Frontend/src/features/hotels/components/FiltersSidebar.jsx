@@ -49,14 +49,16 @@ const FiltersSidebar = () => {
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (localFilters.city.trim())
-      params.set("city", localFilters.city);
+    if (localFilters.city.trim()) params.set("city", localFilters.city);
+    else params.delete("city");
 
     if (localFilters.country.trim())
       params.set("country", localFilters.country);
+    else params.delete("country");
 
     if (localFilters.amenities.length)
       params.set("amenities", localFilters.amenities.join(","));
+    else params.delete("amenities");
 
     params.set("page", 1);
 

@@ -37,13 +37,14 @@ const FeaturedHotels = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
         {hotels.map((hotel) => (
           <div
-            key={hotel.id}
+            key={hotel._id ?? hotel.id}
             className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300"
           >
             {/* IMAGE */}
             <div className="h-52 overflow-hidden">
               <img
                 src={hotel.images?.[0]}
+                alt={`${hotel.hotelName} in ${hotel.address.city}, ${hotel.address.country}`}
                 className="w-full h-full object-cover hover:scale-105 transition duration-500"
                 loading="lazy"
               />
@@ -80,7 +81,7 @@ const FeaturedHotels = () => {
               <div className="flex justify-between items-center border-t pt-4">
                 <div>
                   <p className="text-lg font-semibold text-[#04162e]">
-                    ${Math.floor(Math.random() * 500 + 500)}
+                    ${Math.floor((parseInt((hotel._id ?? hotel.id)?.slice(-4), 16) % 500) + 200)}
                   </p>
                   <span className="text-xs text-gray-400">/ night</span>
                 </div>
