@@ -3,13 +3,12 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 
 const Categories = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const selected = searchParams.get("category");
 
   const categories = [
     { label: "Luxury", value: "luxury" },
     { label: "Budget", value: "budget" },
-    { label: "Villas", value: "villas" },
     { label: "Business", value: "business" },
     { label: "Family", value: "family" },
   ];
