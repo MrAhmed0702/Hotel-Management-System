@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import FullScreenLoader from "../../../components/ui/FullScreenLoader";
 import { useNavigate } from "react-router-dom";
 
+const getDeterministicPrice = (id) =>
+  Math.floor((parseInt(id?.slice(-4), 16) % 500) + 200);
+
 const FeaturedHotels = () => {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
@@ -81,7 +84,7 @@ const FeaturedHotels = () => {
               <div className="flex justify-between items-center border-t pt-4">
                 <div>
                   <p className="text-lg font-semibold text-[#04162e]">
-                    ${Math.floor((parseInt((hotel._id ?? hotel.id)?.slice(-4), 16) % 500) + 200)}
+                    ${getDeterministicPrice(hotel._id ?? hotel.id)}
                   </p>
                   <span className="text-xs text-gray-400">/ night</span>
                 </div>

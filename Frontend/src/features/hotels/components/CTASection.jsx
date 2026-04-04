@@ -37,10 +37,10 @@ const CTASection = () => {
 
           {/* LINKS */}
           <div className="flex gap-6">
-            <button type="button" className="hover:text-white cursor-pointer">Privacy Policy</button>
-            <button type="button" className="hover:text-white cursor-pointer">Terms of Service</button>
-            <button type="button" className="hover:text-white cursor-pointer">Sustainability</button>
-            <button type="button" className="hover:text-white cursor-pointer">Press Kit</button>
+            <a href="#" className="hover:text-white cursor-pointer">Privacy Policy</a>
+            <a href="#" className="hover:text-white cursor-pointer">Terms of Service</a>
+            <a href="#" className="hover:text-white cursor-pointer">Sustainability</a>
+            <a href="#" className="hover:text-white cursor-pointer">Press Kit</a>
           </div>
 
           {/* COPYRIGHT */}
