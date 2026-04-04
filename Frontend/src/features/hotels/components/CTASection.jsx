@@ -29,7 +29,7 @@ const CTASection = () => {
           <div className="flex items-center">
             <img 
               src={logo}
-              className="w-30 h-30 "
+              className="w-40 h-40 "
             />
             <p className="text-white font-serif text-2xl">LuxeStay</p>
           </div>

@@ -45,6 +45,7 @@ const FeaturedHotels = () => {
               <img
                 src={hotel.images?.[0]}
                 className="w-full h-full object-cover hover:scale-105 transition duration-500"
+                loading="lazy"
               />
             </div>
 
