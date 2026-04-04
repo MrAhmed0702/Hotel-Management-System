@@ -63,6 +63,11 @@ const hotelSchema = new Schema(
       default: [],
     },
 
+    category: {
+      type: String,
+      enum: ["luxury", "budget", "business", "family"],
+    },
+
     totalRooms: {
       type: Number,
       required: [true, "Total rooms is required"],

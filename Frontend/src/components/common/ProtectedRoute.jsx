@@ -1,18 +1,19 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import FullScreenLoader from "../ui/FullScreenLoader";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = () => {
     const { isAuthenticated, isLoading } = useAuth();
 
     if(isLoading){
-        return <p>Loading...</p>
+        return <FullScreenLoader />;
     }
 
     if(!isAuthenticated){
-        return <Navigate to="/login" />;
+        return <Navigate to="/login"  replace/>;
     }
 
-    return children;
+    return <Outlet />;
 };
 
 export default ProtectedRoute;

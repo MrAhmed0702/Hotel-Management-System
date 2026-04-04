@@ -26,8 +26,12 @@ export const createHotelSchema = Joi.object({
     .default([]),
 
   amenities: Joi.array()
-    .items(Joi.string().trim())
+    .items(Joi.string().trim().lowercase())
     .default([]),
+
+  category: Joi.string()
+    .valid("luxury", "budget", "business", "family")
+    .required(),
 
   totalRooms: Joi.number()
     .integer()
@@ -48,6 +52,9 @@ export const updateHotelSchema = Joi.object({
   amenities: Joi.array()
     .items(Joi.string().trim())
     .default([]),
+
+  category: Joi.string()
+    .valid("luxury", "budget", "business", "family"),
 
   address: Joi.object({
     street: Joi.string().trim(),

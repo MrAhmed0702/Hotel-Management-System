@@ -12,7 +12,7 @@ export const useAuthRehydrate = () => {
     if (!token) return;
     if (isSuccess) dispatch(loginSuccess({ user: data.data, token }));
     if (isError) dispatch(logout());
-  }, [token, isSuccess, isError, data, dispatch]);
+  }, [isSuccess, isError]);
 
   return { isLoading };
 };
