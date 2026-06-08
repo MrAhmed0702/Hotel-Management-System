@@ -13,6 +13,7 @@ import createPaymentRoutes from "./modules/payments/createPayment.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
 import webhookRoutes from "./modules/payments/webhooks/webhook.routes.js";
 import { ApiError } from "./utils/apiError.js";
+import multer from "multer";
 
 const app = express();
 
@@ -66,9 +67,19 @@ app.use("/bookings", bookingRoutes);
 app.use("/bookings/:bookingId/payments", createPaymentRoutes);
 app.use("/payments", paymentRoutes);
 
+app.use("*", (req, res, next) => {
+  next(
+    new ApiError(
+      404,
+      `Route ${req.originalUrl} not found`
+    )
+  );
+})
+
 app.use((err, req, res, next) => {
   // 🔍 Logging (structured)
   console.error({
+    timestamp: new Date().toISOString(),
     message: err.message,
     stack: err.stack,
     path: req.originalUrl,
@@ -111,6 +122,29 @@ app.use((err, req, res, next) => {
       success: false,
       message: "Invalid ID format",
     });
+  }
+
+  // ❌ Multer file validation error
+  if (err instanceof multer.MulterError) {
+    switch (err.code) {
+      case "LIMIT_FILE_SIZE":
+        return res.status(400).json({
+          success: false,
+          message: "Maximum file size is 10MB",
+        });
+
+      case "LIMIT_FILE_COUNT":
+        return res.status(400).json({
+          success: false,
+          message: "Only one file allowed",
+        });
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: err.message,
+        });
+    }
   }
 
   // ❌ Unknown error (fallback)

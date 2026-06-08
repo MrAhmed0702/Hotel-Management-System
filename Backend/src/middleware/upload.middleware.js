@@ -2,6 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { ApiError } from "../utils/apiError.js";
 
 const uploadDir = path.resolve("uploads");
 
@@ -26,7 +27,7 @@ const fileFilter = (req, file, cb) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only JPG, PNG, WEBP allowed"), false);
+    cb(new ApiError(400, "Only JPG, PNG, WEBP allowed"), false);
   }
 };
 

@@ -7,7 +7,7 @@ export const registerUser = async(data) => {
 
     const userExists = await User.findOne({email});
     if(userExists) {
-        throw new Error("User already exists");
+        throw new ApiError(409, "User already exists");
     }
 
     const user = await User.create({

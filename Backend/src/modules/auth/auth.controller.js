@@ -1,4 +1,5 @@
 import { registerUser, loginUser } from "./auth.service.js";
+import fs from "fs";
 
 export const register = async (req, res, next) => {
   try {
@@ -14,7 +15,9 @@ export const register = async (req, res, next) => {
       profilePicture = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
     }
 
-    console.log("Uploaded file:", req.file?.filename);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Uploaded file:", req.file?.filename);
+    }
 
     const user = await registerUser({
       ...req.validatedData,
@@ -30,19 +33,28 @@ export const register = async (req, res, next) => {
     });
 
   } catch (error) {
+    if (req.file?.path) {
+      await fs.promises.unlink(req.file.path).catch(err => console.error("Failed to delete uploaded file:", err));
+    }
+
     next(error);
   }
 };
 
-export const login = async (req, res) => {
-  const { user, token } = await loginUser(req.validatedData);
+export const login = async (req, res, next) => {
+  try {
+    const { user, token } = await loginUser(req.validatedData);
 
-  const { password, ...safeUser } = user.toObject();
+    const { password, ...safeUser } = user.toObject();
 
-  res.status(200).json({
-    success: true,
-    message: "User logged in successfully",
-    data: safeUser,
-    token: token,
-  });
+    res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      data: safeUser,
+      token: token,
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };
