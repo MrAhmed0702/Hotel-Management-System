@@ -4,15 +4,18 @@ import fs from "fs";
 export const register = async (req, res, next) => {
   try {
     let profilePicture;
+    let profilePictureType;
 
     if (req.file && req.file.filename) {
       const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
       profilePicture = `${baseUrl}/uploads/${req.file.filename}`;
+      profilePictureType = "uploaded";
     } else {
       const { firstName, lastName } = req.validatedData;
       const name = `${firstName || ""} ${lastName || ""}`.trim() || "User";
-
+      
       profilePicture = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+      profilePictureType = "default";
     }
 
     if (process.env.NODE_ENV !== "production") {
@@ -22,6 +25,7 @@ export const register = async (req, res, next) => {
     const user = await registerUser({
       ...req.validatedData,
       profilePicture,
+      profilePictureType
     });
 
     const { password, ...safeUser } = user.toObject();

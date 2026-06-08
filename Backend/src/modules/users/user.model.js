@@ -53,9 +53,15 @@ const userSchema = new Schema(
       type: String,
     },
 
+    profilePictureType: {
+      type: String,
+      enum: ["default", "uploaded"],
+      default: "default",
+    },
+
     role: {
       type: String,
-      enum: ["admin", "user"],
+      enum: ["admin", "user", "owner"],
       default: "user",
     },
 

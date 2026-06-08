@@ -1,4 +1,5 @@
 import { getUserById, updateUserById, softDeleteUser as softDeleteUserService } from "./user.service.js";
+import fs from "fs";
 
 export const getUserDetails = async (req, res) => {
         const user = await getUserById(req.user.id);
@@ -10,14 +11,29 @@ export const getUserDetails = async (req, res) => {
         });
 }
 
-export const updateUserDetails = async (req, res) => {
-    const updatedUser = await updateUserById(req.user.id, req.validatedData);
+export const updateUserDetails = async (req, res, next) => {
+    try {
+        const updateData = { ...req.validatedData };
 
-    res.status(200).json({
-        success: true,
-        message: "User Details Updated Successfully",
-        data: updatedUser
-    });
+        if(req.file?.filename){
+            const baseURL = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+            updateData.profilePicture = `${baseURL}/uploads/${req.file.filename}`;
+            updateData.profilePictureType = "uploaded";
+        }
+
+        const updatedUser = await updateUserById(req.user.id, updateData);
+
+        res.status(200).json({
+            success: true,
+            message: "User Details Updated Successfully",
+            data: updatedUser
+        });
+    } catch (error) {
+        if(req.file?.path){
+            await fs.promises.unlink(req.file.path).catch(err => console.error("Failed to delete uploaded file:", err));
+        }
+        next(error);
+    }
 }
 
 export const softDeleteUser = async (req, res) => {

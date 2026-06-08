@@ -3,12 +3,14 @@ import { verifyToken } from "../../middleware/verifyToken.middleware.js";
 import { getUserDetails, updateUserDetails, softDeleteUser } from "./user.controller.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import { updateUserSchema } from "./user.validation.js";
+import { upload } from "../../middleware/upload.middleware.js"
+import { validateFileContent } from "../../middleware/fileValidation.middleware.js";
 
 const router = express.Router();
 
 router.get("/me", verifyToken, getUserDetails);
 
-router.patch("/me", verifyToken, validate(updateUserSchema), updateUserDetails);
+router.patch("/me", verifyToken, upload.single("profilePicture"), validateFileContent, validate(updateUserSchema), updateUserDetails);
 
 router.delete("/me", verifyToken, softDeleteUser);
 
