@@ -116,8 +116,10 @@ userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-userSchema.pre(/^find/, function() {
-  this.where({ isDeleted: false });
+userSchema.pre(/^find/, function () {
+  if (!this.getOptions().includeDeleted) {
+    this.where({ isDeleted: false });
+  }
 });
 
 userSchema.set("toObject", {

@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import compression from "compression";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
+import adminRoutes from "./modules/admin/admin.routes.js";
 import hotelRoutes from "./modules/hotels/hotel.routes.js";
 import roomRoutes from "./modules/rooms/room.routes.js";
 import hotelBookingRoutes from "./modules/bookings/hotelBooking.routes.js";
@@ -60,6 +61,7 @@ app.get("/health", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+app.use("/admin", adminRoutes);
 app.use("/hotels", hotelRoutes);
 app.use("/hotels/:hotelId/rooms", roomRoutes);
 app.use("/hotels/:hotelId/bookings", hotelBookingRoutes);
