@@ -4,7 +4,8 @@ import { authorize } from "../../middleware/authorize.middleware.js";
 import { validateUserId } from "../../middleware/validateUserId.middleware.js";
 import { validateUserIdIncludingDeleted } from "../../middleware/validateUserIdIncludingDeleted.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
-import { updateUserSchema, updateRoleSchema } from "./admin.validation.js";
+import { updateUserSchema, updateRoleSchema, hotelStatusSchema, updateHotelStatusSchema } from "./admin.validation.js";
+import { validateHotelId } from "../../middleware/validateHotelId.middleware.js";
 
 import {
   getUserDetails,
@@ -13,7 +14,10 @@ import {
   updateUser,
   updateRole,
   restoreUser,
-  deleteUser
+  deleteUser,
+  getHotelsByStatus,
+  getHotelDetails,
+  updateHotelStatus
 } from "./admin.controller.js";
 
 const router = express.Router();
@@ -32,9 +36,9 @@ router.patch("/users/:userId/restore", validateUserIdIncludingDeleted, restoreUs
 router.delete("/users/:userId", validateUserId, deleteUser);
 
 // Hotel Supervision
-// router.get("/hotels/pending", getPendingHotels);
+router.get("/hotels", validate(hotelStatusSchema), getHotelsByStatus);
+router.get("/hotels/:hotelId", validateHotelId, getHotelDetails);
 
-// router.patch("/hotels/:hotelId/approve", approveHotel);
-// router.patch("/hotels/:hotelId/reject", rejectHotel);
+router.patch("/hotels/:hotelId/status", validateHotelId, validate(updateHotelStatusSchema), updateHotelStatus);
 
 export default router;

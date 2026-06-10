@@ -1,4 +1,5 @@
 import User from "../users/user.model.js";
+import Hotel from "../hotels/hotel.model.js";
 
 export const getAllUsers = async ({ query, skip, limit, sortBy }) => {
 
@@ -72,4 +73,11 @@ export const checkPhoneNumberExists = async (phoneNumber, userId) => {
 
 export const countAdmins = async () => {
     return await User.countDocuments({ role: "admin", isDeleted: false });
+}
+
+export const getHotelsByStatus = async (status = "pending") => {
+    return await Hotel.find({ status })
+        .populate("owner", "firstName lastName email phoneNumber")
+        .sort({ createdAt: -1 })
+        .lean();
 }

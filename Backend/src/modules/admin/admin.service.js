@@ -1,6 +1,12 @@
 import * as adminRepo from "./admin.repository.js";
 import { ApiError } from "../../utils/apiError.js";
 
+export const escapeRegex = (value = "") =>
+    String(value).replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+    );
+
 export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
     page = Math.max(1, Number(page));
     limit = Math.min(100, Math.max(1, Number(limit)));
@@ -10,12 +16,14 @@ export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
     const query = {}
 
     if (search) {
+        const safeSearch = escapeRegex(search);
+
         query.$or = [
-            { firstName: { $regex: search, $options: "i" } },
-            { lastName: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-            { phoneNumber: { $regex: search, $options: "i" } },
-            { role: { $regex: search, $options: "i" } }
+            { firstName: { $regex: safeSearch, $options: "i" } },
+            { lastName: { $regex: safeSearch, $options: "i" } },
+            { email: { $regex: safeSearch, $options: "i" } },
+            { phoneNumber: { $regex: safeSearch, $options: "i" } },
+            { role: { $regex: safeSearch, $options: "i" } }
         ];
     }
 
@@ -49,12 +57,14 @@ export const getDeletedUsersService = async ({ page, limit, search, sortBy }) =>
     const query = {}
 
     if (search) {
+        const safeSearch = escapeRegex(search);
+
         query.$or = [
-            { firstName: { $regex: search, $options: "i" } },
-            { lastName: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-            { phoneNumber: { $regex: search, $options: "i" } },
-            { role: { $regex: search, $options: "i" } }
+            { firstName: { $regex: safeSearch, $options: "i" } },
+            { lastName: { $regex: safeSearch, $options: "i" } },
+            { email: { $regex: safeSearch, $options: "i" } },
+            { phoneNumber: { $regex: safeSearch, $options: "i" } },
+            { role: { $regex: safeSearch, $options: "i" } }
         ];
     }
 
@@ -167,4 +177,47 @@ export const restoreUserService = async (targetUser) => {
     await targetUser.save();
 
     return targetUser;
+}
+
+export const getHotelsByStatusService = async (status = "pending") => {
+    return await adminRepo.getHotelsByStatus(status);
+}
+
+export const updateHotelStatusService = async (adminId, hotel, status) => {
+    if (hotel.isDeleted) {
+        throw new ApiError(400, "Deleted hotel cannot be activated");
+    }
+
+    if (hotel.status === status) {
+        throw new ApiError(400, `Hotel is already ${status}`);
+    }
+
+    const allowedTransitions = {
+        pending: ["active", "rejected"],
+        active: ["suspended", "inactive"],
+        suspended: ["active"],
+        rejected: ["pending"],
+        inactive: ["active"]
+    };
+
+    if (!allowedTransitions[hotel.status]?.includes(status)) {
+        throw new ApiError(400, `Cannot change hotel status from ${hotel.status} to ${status}`);
+    }
+
+    hotel.status = status;
+
+    switch (status) {
+        case "active":
+            hotel.approvedBy = adminId;
+            break;
+
+        case "pending":
+        case "rejected":
+            hotel.approvedBy = null;
+            break;
+    }
+
+    await hotel.save();
+
+    return hotel;
 }

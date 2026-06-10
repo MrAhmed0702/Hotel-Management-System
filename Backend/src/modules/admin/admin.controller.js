@@ -1,4 +1,4 @@
-import { getAllUsersService, getDeletedUsersService, updateUserService, updateRoleService, deleteUserService, restoreUserService } from "./admin.service.js";
+import { getAllUsersService, getDeletedUsersService, updateUserService, updateRoleService, deleteUserService, restoreUserService, getHotelsByStatusService, updateHotelStatusService } from "./admin.service.js";
 
 export const getAllUsers = async (req, res) => {
     const {
@@ -117,5 +117,35 @@ export const restoreUser = async (req, res) => {
         success: true,
         message: "User restored successfully",
         data: restoredUser
+    })
+}
+
+export const getHotelsByStatus = async (req, res) => {
+    const { status } = req.query;
+
+    const hotels = await getHotelsByStatusService(status);
+
+    res.status(200).json({
+        success: true,
+        message: "Hotels fetched successfully",
+        data: hotels
+    })
+}
+
+export const getHotelDetails = async (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Hotel fetched successfully",
+        data: req.targetHotel
+    })
+}
+
+export const updateHotelStatus = async (req, res) => {
+    const updatedHotelStatus = await updateHotelStatusService(req.user.id, req.targetHotel, req.validatedData.status);
+
+    res.status(200).json({
+        success: true,
+        message: "Hotel status updated successfully",
+        data: updatedHotelStatus
     })
 }

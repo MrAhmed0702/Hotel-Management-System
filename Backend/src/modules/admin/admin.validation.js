@@ -24,3 +24,25 @@ export const updateRoleSchema = Joi.object({
         .valid("user", "owner", "admin")
         .required()
 }).unknown(false);
+
+export const hotelStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid(
+      "pending",
+      "active",
+      "rejected",
+      "suspended",
+      "inactive"
+    ).optional()
+}).unknown(false);
+
+export const updateHotelStatusSchema = Joi.object({
+    status: Joi.string()
+    .valid(
+      "pending",
+      "active",
+      "rejected",
+      "suspended",
+      "inactive"
+    ).required()
+}).unknown(false);
