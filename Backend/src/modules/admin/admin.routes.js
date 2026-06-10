@@ -31,4 +31,10 @@ router.patch("/users/:userId/restore", validateUserIdIncludingDeleted, restoreUs
 
 router.delete("/users/:userId", validateUserId, deleteUser);
 
+// Hotel Supervision
+// router.get("/hotels/pending", getPendingHotels);
+
+// router.patch("/hotels/:hotelId/approve", approveHotel);
+// router.patch("/hotels/:hotelId/reject", rejectHotel);
+
 export default router;

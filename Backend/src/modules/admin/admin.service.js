@@ -13,7 +13,9 @@ export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
         query.$or = [
             { firstName: { $regex: search, $options: "i" } },
             { lastName: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } }
+            { email: { $regex: search, $options: "i" } },
+            { phoneNumber: { $regex: search, $options: "i" } },
+            { role: { $regex: search, $options: "i" } }
         ];
     }
 
@@ -50,7 +52,9 @@ export const getDeletedUsersService = async ({ page, limit, search, sortBy }) =>
         query.$or = [
             { firstName: { $regex: search, $options: "i" } },
             { lastName: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } }
+            { email: { $regex: search, $options: "i" } },
+            { phoneNumber: { $regex: search, $options: "i" } },
+            { role: { $regex: search, $options: "i" } }
         ];
     }
 

@@ -6,7 +6,10 @@ export const getAllUsers = async ({ query, skip, limit, sortBy }) => {
 
     const [allUsers, totalUsers] = await Promise.all([
         User.find(finalQuery)
-            .sort(sortBy)
+            .sort({
+                ...sortBy,
+                _id: 1,
+            })
             .skip(skip)
             .limit(limit)
             .lean(),

@@ -1,9 +1,22 @@
 import fs from "fs";
 
-export const deleteImage = async (filePath) => {
-    try {
-        await fs.promises.unlink(filePath)
-    } catch (error) {
-        console.error("File deletion failed:", error.message);
-    }
-}
+export const deleteImage = async (filePaths) => {
+  try {
+
+    const paths = Array.isArray(filePaths)
+      ? filePaths
+      : [filePaths];
+
+    await Promise.all(
+      paths.map(filePath =>
+        fs.promises.unlink(filePath).catch(() => {})
+      )
+    );
+
+  } catch (error) {
+    console.error(
+      "File deletion failed:",
+      error.message
+    );
+  }
+};

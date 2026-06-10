@@ -83,21 +83,33 @@ const hotelSchema = new Schema(
       set: (val) => Math.round(val * 10) / 10,
     },
 
-    createdBy: {
+    owner: {
       type: Types.ObjectId,
       ref: "User",
-      required: true,
+      required: true
+    },
+
+    approvedBy: {
+      type: Types.ObjectId,
+      ref: "User",
+      default: null
     },
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      enum: [
+        "pending",
+        "active",
+        "rejected",
+        "inactive",
+        "suspended"
+      ],
+      default: "pending"
     },
 
     isDeleted: {
       type: Boolean,
-      default: false,
+      default: false
     },
 
     deletedAt: {

@@ -16,7 +16,7 @@ export const updateUserDetails = async (req, res, next) => {
         const updateData = { ...req.validatedData };
 
         if(req.file?.filename){
-            const baseURL = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+            const baseURL =  `${req.protocol}://${req.get("host")}`;
             updateData.profilePicture = `${baseURL}/uploads/${req.file.filename}`;
             updateData.profilePictureType = "uploaded";
         }

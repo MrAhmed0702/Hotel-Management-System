@@ -6,6 +6,7 @@ import compression from "compression";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
+import ownerRoutes from "./modules/hotelOwner/owner.routes.js";
 import hotelRoutes from "./modules/hotels/hotel.routes.js";
 import roomRoutes from "./modules/rooms/room.routes.js";
 import hotelBookingRoutes from "./modules/bookings/hotelBooking.routes.js";
@@ -62,6 +63,7 @@ app.get("/health", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/admin", adminRoutes);
+app.use("/owner", ownerRoutes);
 app.use("/hotels", hotelRoutes);
 app.use("/hotels/:hotelId/rooms", roomRoutes);
 app.use("/hotels/:hotelId/bookings", hotelBookingRoutes);
@@ -69,14 +71,14 @@ app.use("/bookings", bookingRoutes);
 app.use("/bookings/:bookingId/payments", createPaymentRoutes);
 app.use("/payments", paymentRoutes);
 
-app.use("*", (req, res, next) => {
+app.use((req, res, next) => {
   next(
     new ApiError(
       404,
       `Route ${req.originalUrl} not found`
     )
   );
-})
+});
 
 app.use((err, req, res, next) => {
   // 🔍 Logging (structured)
@@ -101,7 +103,7 @@ app.use((err, req, res, next) => {
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
 
-    return res.status(400).json({
+    return res.status(409).json({
       success: false,
       message: `${field} already exists`,
     });
@@ -138,7 +140,7 @@ app.use((err, req, res, next) => {
       case "LIMIT_FILE_COUNT":
         return res.status(400).json({
           success: false,
-          message: "Only one file allowed",
+          message: "Maximum 10 files allowed",
         });
 
       default:

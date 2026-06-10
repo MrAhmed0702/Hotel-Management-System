@@ -7,7 +7,7 @@ export const register = async (req, res, next) => {
     let profilePictureType;
 
     if (req.file && req.file.filename) {
-      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
       profilePicture = `${baseUrl}/uploads/${req.file.filename}`;
       profilePictureType = "uploaded";
     } else {
