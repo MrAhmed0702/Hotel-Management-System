@@ -10,10 +10,6 @@ export const findHotelByNameAndCity = (hotelName, city) => {
   });
 };
 
-export const createHotel = (hotelData) => {
-  return Hotel.create(hotelData);
-};
-
 export const findHotels = (query, projection, skip, limit, sortOptions) => {
   let queryBuilder = Hotel.find(query)
     .skip(skip)
@@ -29,8 +25,4 @@ export const findHotels = (query, projection, skip, limit, sortOptions) => {
 
 export const countHotels = (query) => {
   return Hotel.countDocuments(query);
-};
-
-export const updateHotel = (hotel) => {
-  return hotel.save();
 };

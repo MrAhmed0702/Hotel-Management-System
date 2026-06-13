@@ -1,66 +1,72 @@
-import { createHotelService, getAllHotelsService, getHotelByIdService, updateHotelService, deleteHotelService } from "./hotel.service.js";
+import { getAllHotelsService, getHotelByIdService } from "./hotel.service.js";
 
-export const createHotel = async (req, res) => {
-    const hotel = await createHotelService(req.user.id, req.body);
+const parsePositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(value, 10);
 
-    res.status(201).json({
-        success: true,
-        message: "Hotel is created successfully",
-        data: hotel,
-    })
-}
-
-export const getAllHotels = async (req, res) => {
-  const { city, country, amenities, search, category, page = 1, limit = 10, sort } = req.query;
-
-  const filters = {
-    city,
-    country,
-    search,
-    category: category?.toLowerCase(),
-    amenities: amenities ? amenities.split(",") : []
-  };
-
-  const pagination = {
-    page: Number(page),
-    limit: Number(limit)
-  };
-
-  const result = await getAllHotelsService(filters, pagination, sort);
-
-  res.status(200).json({
-    success: true,
-    message: "Hotels fetched successfully",
-    data: result
-  });
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 };
 
-export const getHotelById = async (req, res) => {
+const parseAmenities = (value) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return [];
+  }
+
+  return [...new Set(
+    value
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean)
+  )];
+};
+
+export const getAllHotels = async (req, res, next) => {
+  try {
+    const {
+      city,
+      country,
+      amenities,
+      search,
+      category,
+      page,
+      limit,
+      sort,
+    } = req.query;
+
+    const filters = {
+      city: city?.trim(),
+      country: country?.trim(),
+      search: search?.trim(),
+      category: category?.trim().toLowerCase(),
+      amenities: parseAmenities(amenities),
+    };
+
+    const pagination = {
+      page: parsePositiveInt(page, 1),
+      limit: parsePositiveInt(limit, 10),
+    };
+
+    const result = await getAllHotelsService(filters, pagination, sort?.trim());
+
+    res.status(200).json({
+      success: true,
+      message: "Hotels fetched successfully",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getHotelById = async (req, res, next) => {
+  try {
     const hotel = await getHotelByIdService(req.params.id);
 
     res.status(200).json({
-        success: true,
-        message: "Hotel fetched successfully",
-        data: hotel,
+      success: true,
+      message: "Hotel fetched successfully",
+      data: hotel,
     });
+  } catch (error) {
+    next(error);
+  }
 };
-
-export const updateHotel = async (req, res) => {
-    const hotel = await updateHotelService(req.params.id, req.validatedData || req.body);
-    
-    res.status(200).json({
-        success: true,
-        message: "Hotel Updated successfully",
-        data: hotel,
-    });
-}
-
-export const deleteHotel = async (req, res) => {
-    const hotel = await deleteHotelService(req.params.id);
-
-    res.status(200).json({
-        success: true,
-        message: "Hotel Record Removed successfully",
-        data: hotel,
-    })
-}

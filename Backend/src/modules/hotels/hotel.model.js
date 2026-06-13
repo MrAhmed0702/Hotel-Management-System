@@ -80,7 +80,13 @@ const hotelSchema = new Schema(
       min: 0,
       max: 5,
       default: 0,
-      set: (val) => Math.round(val * 10) / 10,
+      set: (val) => {
+        if (typeof val === "number") {
+          return Math.round(val * 10) / 10;
+        }
+
+        return val;
+      } 
     },
 
     owner: {
@@ -141,17 +147,29 @@ hotelSchema.index({
   averageRating: -1,
 });
 
+hotelSchema.index({
+  status: 1,
+  createdAt: -1
+});
+
+hotelSchema.index({
+  status: 1,
+  averageRating: -1
+})
+
+hotelSchema.index({
+  owner: 1,
+  status: 1
+})
+
 hotelSchema.index(
-  {
-    hotelName: "text",
-    description: "text",
-    amenities: "text",
-  },
+  { hotelName: "text", description: "text", amenities: "text", category: "text" },
   {
     weights: {
       hotelName: 10,
       description: 5,
-      amenities: 2,
+      amenities: 3,
+      category: 1
     },
   },
 );
