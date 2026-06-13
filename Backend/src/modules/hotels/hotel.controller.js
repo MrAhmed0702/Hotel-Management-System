@@ -1,24 +1,4 @@
-import { getAllHotelsService, getHotelByIdService } from "./hotel.service.js";
-
-const parsePositiveInt = (value, fallback) => {
-  const parsed = Number.parseInt(value, 10);
-
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-};
-
-const parseAmenities = (value) => {
-  if (typeof value !== "string" || !value.trim()) {
-    return [];
-  }
-
-  return [...new Set(
-    value
-      .split(",")
-      .map((item) => item.trim().toLowerCase())
-      .filter(Boolean)
-  )];
-};
-
+import { getAllHotelsService} from "./hotel.service.js";
 export const getAllHotels = async (req, res, next) => {
   try {
     const {
@@ -30,19 +10,19 @@ export const getAllHotels = async (req, res, next) => {
       page,
       limit,
       sort,
-    } = req.query;
+    } = req.validatedData;
 
     const filters = {
-      city: city?.trim(),
-      country: country?.trim(),
-      search: search?.trim(),
-      category: category?.trim().toLowerCase(),
-      amenities: parseAmenities(amenities),
+      city,
+      country,
+      search,
+      category,
+      amenities,
     };
 
     const pagination = {
-      page: parsePositiveInt(page, 1),
-      limit: parsePositiveInt(limit, 10),
+      page,
+      limit,
     };
 
     const result = await getAllHotelsService(filters, pagination, sort?.trim());
@@ -59,12 +39,10 @@ export const getAllHotels = async (req, res, next) => {
 
 export const getHotelById = async (req, res, next) => {
   try {
-    const hotel = await getHotelByIdService(req.params.id);
-
     res.status(200).json({
       success: true,
       message: "Hotel fetched successfully",
-      data: hotel,
+      data: req.targetHotel,
     });
   } catch (error) {
     next(error);

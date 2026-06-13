@@ -8,12 +8,14 @@ const hotelSchema = new Schema(
       trim: true,
       minlength: 2,
       maxlength: 120,
+      lowercase: true,
     },
 
     description: {
       type: String,
       trim: true,
       maxlength: 1000,
+      lowercase: true,
     },
 
     address: {
@@ -21,12 +23,14 @@ const hotelSchema = new Schema(
         type: String,
         required: true,
         trim: true,
+        lowercase: true,
       },
 
       city: {
         type: String,
         required: true,
         trim: true,
+        lowercase: true,
         index: true,
       },
 
@@ -34,17 +38,20 @@ const hotelSchema = new Schema(
         type: String,
         required: true,
         trim: true,
+        lowercase: true,
       },
 
       zipCode: {
         type: String,
         required: true,
         trim: true,
+        lowercase: true,
       },
 
       country: {
         type: String,
         required: true,
+        lowercase: true,
         trim: true,
       },
     },

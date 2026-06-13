@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import * as hotelRepo from "./hotel.repository.js";
 import { ApiError } from "../../utils/apiError.js";
 
@@ -142,24 +141,7 @@ export const getAllHotelsService = async ( filters, pagination, sort) => {
       page,
       limit,
       total,
-      totalPages:
-        Math.ceil(total / limit),
+      totalPages: Math.max(1, Math.ceil(total / limit)),
     },
   };
-};
-
-export const getHotelByIdService = async ( id ) => {
-  if ( !mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid hotel ID");
-  }
-
-  const hotel = await hotelRepo.findHotelById(id)
-    .select(HOTEL_DETAILS_PROJECTION)
-    .lean();
-
-  if (!hotel) {
-    throw new ApiError(404, "Hotel not found");
-  }
-
-  return hotel;
 };

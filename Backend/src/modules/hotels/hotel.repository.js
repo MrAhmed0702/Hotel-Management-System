@@ -1,15 +1,5 @@
 import Hotel from "./hotel.model.js";
 
-export const findHotelById = (id) => Hotel.findById(id);
-
-export const findHotelByNameAndCity = (hotelName, city) => {
-  return Hotel.findOne({
-    hotelName,
-    "address.city": city,
-    isDeleted: false,
-  });
-};
-
 export const findHotels = (query, projection, skip, limit, sortOptions) => {
   let queryBuilder = Hotel.find(query)
     .skip(skip)
