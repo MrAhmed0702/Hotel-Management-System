@@ -7,11 +7,18 @@ import {
     getHotelById,
     updateHotel,
     deleteHotel,
+    createRoom,
+    updateRoom,
+    deleteRoom,
 } from "./owner.controller.js";
 import { validateFileContent } from "../../middleware/fileValidation.middleware.js";
 import { upload } from "../../middleware/upload.middleware.js";
-import { hotelCreationSchema, hotelUpdateSchema } from "./owner.validation.js";
+import { getOwnerHotelsSchema, hotelCreationSchema, hotelUpdateSchema } from "./owner.validation.js";
 import { validate } from "../../middleware/validate.middleware.js";
+import { validateRoomId } from "../../middleware/validateRoomId.middleware.js";
+import { validateHotelOwnership } from "../../middleware/validateHotelOwnership.middleware.js";
+import { validateHotelId } from "../../middleware/validateHotelId.middleware.js";
+import { createRoomSchema, updateRoomSchema } from "../rooms/room.validation.js";
 
 const router = express.Router();
 
@@ -29,11 +36,13 @@ router.post(
     createHotel
 );
 
-router.get("/hotels", getMyHotels);
-router.get("/hotels/:id", getHotelById);
+router.get("/hotels", validate(getOwnerHotelsSchema, "query"), getMyHotels);
+router.get("/hotels/:hotelId", validateHotelId, validateHotelOwnership, getHotelById);
 
 router.patch(
-    "/hotels/:id",
+    "/hotels/:hotelId",
+    validateHotelId,
+    validateHotelOwnership,
     upload.array("images", 10),
     validateFileContent,
     validate(hotelUpdateSchema),
@@ -41,19 +50,35 @@ router.patch(
 );
 
 router.delete(
-    "/hotels/:id",
+    "/hotels/:hotelId",
+    validateHotelId,
+    validateHotelOwnership,
     deleteHotel
 );
 
 //Room management routes by owner
-// router.post("hotels/:id/rooms", createRoom);
-
-// router.get("hotels/:id/rooms", getRooms);
-// router.get("hotels/:id/rooms/:id", getSingleRoom);
-
-// router.patch("hotels/:id/rooms/:id", updateRoom);
-
-// router.delete("hotels/:id/rooms/:id", deleteRoom);
+router.post(
+    "/hotels/:hotelId/rooms",
+    validateHotelId,
+    validateHotelOwnership,
+    validate(createRoomSchema),
+    createRoom
+);
+router.patch(
+    "/hotels/:hotelId/rooms/:roomId",
+    validateHotelId,
+    validateHotelOwnership,
+    validateRoomId,
+    validate(updateRoomSchema),
+    updateRoom
+);
+router.delete(
+    "/hotels/:hotelId/rooms/:roomId",
+    validateHotelId,
+    validateHotelOwnership,
+    validateRoomId,
+    deleteRoom
+);
 
 //Booking management routes by owner
 // router.get("bookings", getMyBookings);

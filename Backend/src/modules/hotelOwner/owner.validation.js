@@ -135,8 +135,7 @@ export const hotelUpdateSchema = Joi.object({
             "budget",
             "business",
             "family"
-        )
-        .required(),
+        ),
 
     totalRooms: Joi.number()
         .integer()
@@ -145,3 +144,20 @@ export const hotelUpdateSchema = Joi.object({
 })
     .min(1)
     .unknown(false);
+
+export const getOwnerHotelsSchema = Joi.object({
+    page: Joi.number()
+        .integer()
+        .min(1)
+        .default(1),
+
+    limit: Joi.number()
+        .integer()
+        .min(1)
+        .max(100)
+        .default(10),
+
+    search: Joi.string()
+        .trim()
+        .max(100)
+}).unknown(false);

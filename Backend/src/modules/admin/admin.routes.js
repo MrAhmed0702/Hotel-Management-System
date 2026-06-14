@@ -36,7 +36,7 @@ router.patch("/users/:userId/restore", validateUserIdIncludingDeleted, restoreUs
 router.delete("/users/:userId", validateUserId, deleteUser);
 
 // Hotel Supervision
-router.get("/hotels", validate(hotelStatusSchema), getHotelsByStatus);
+router.get("/hotels", validate(hotelStatusSchema, "query"), getHotelsByStatus);
 router.get("/hotels/:hotelId", validateHotelId, getHotelDetails);
 
 router.patch("/hotels/:hotelId/status", validateHotelId, validate(updateHotelStatusSchema), updateHotelStatus);

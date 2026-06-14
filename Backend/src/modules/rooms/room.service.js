@@ -1,114 +1,45 @@
-import mongoose from "mongoose";
 import * as roomRepo from "./room.repository.js";
-import { ApiError } from "../../utils/apiError.js"
 
-export const createRoomService = async (hotelId, roomData) => {
-  if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-    throw new ApiError(400, "Invalid hotel ID");
-  }
+export const getRoomService = async (filtered, hotel, page, limit) => {
+  const { minPrice, maxPrice, capacity, type, operationalStatus } = filtered;
 
-  const hotel = await roomRepo.existsHotelById(hotelId);
+  const query = { hotelId: hotel._id };
 
-  if (!hotel) throw new ApiError(404, "Hotel not found");;
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    query.price = {};
 
-  try {
-    const room = await roomRepo.createRoom({
-      ...roomData,
-      hotelId,
-    });
-
-    return room;
-  } catch (err) {
-    if (err.code === 11000) {
-      throw new ApiError(400, "Room number already exists for this hotel");
+    if (minPrice !== undefined) {
+      query.price.$gte = minPrice;
     }
-    throw err;
+
+    if (maxPrice !== undefined) {
+      query.price.$lte = maxPrice;
+    }
   }
+
+  if (capacity) {
+    query.capacity = capacity;
+  }
+
+  if (type) {
+    query.type = type;
+  }
+
+  if (operationalStatus) {
+    query.operationalStatus = operationalStatus;
+  }
+
+  const { rooms, totalRooms } = await roomRepo.findRooms(query, page, limit);
+
+  const totalPages = Math.max(1, Math.ceil(totalRooms / limit));
+
+  return {
+    rooms,
+    page,
+    limit,
+    totalRooms,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
+  };
 };
-
-export const getRoomService = async (filtered, hotelId) => {
-    if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-        throw new ApiError(400, "Invalid hotel ID");
-    }
-
-    const hotel = await roomRepo.existsHotelById(hotelId);
-
-    if (!hotel) throw new ApiError(404, "Hotel not found");;
-
-    const { price, capacity, type, status } = filtered;
-
-    const query = { hotelId };
-
-    if (price) query.price = Number(price);
-    if (capacity) query.capacity = Number(capacity);
-    if (type) query.type = type;
-    if (status) query.status = status;
-
-    const rooms = await roomRepo.findRooms(query);
-
-    return rooms;
-}
-
-export const getRoomByIdService = async (roomId, hotelId) => {
-  if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
-    throw new ApiError(400, "Invalid ID");
-  }
-
-  const hotel = await roomRepo.existsHotelById(hotelId);
-
-  if(!hotel) throw new ApiError(404, "Hotel not found");;
-
-  const room = await roomRepo.findRoomById(roomId, hotelId);
-
-  if(!room) throw new ApiError(404, "Room not found");
-
-  return room;
-}
-
-export const updateRoomService = async (roomId, hotelId, roomUpdatedData) => {
-  if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
-    throw new ApiError(400, "Invalid ID");
-  }
-
-  const hotel = await roomRepo.existsHotelById(hotelId);
-
-  if(!hotel) throw new ApiError(404, "Hotel not found");
-
-  const room = await roomRepo.findRoomById(roomId, hotelId);
-
-  if(!room) throw new ApiError(404, "Room not found");
-
-  const allowedUpdates = ["type", "price", "capacity", "description", "amenities", "status"];
-
-  const filteredData = Object.fromEntries(
-    Object.entries(roomUpdatedData).filter(([key]) => allowedUpdates.includes(key))
-  )
-
-  if(Object.keys(filteredData).length === 0){
-    throw new ApiError(400, `No valid fields provided for update`);
-  }
-
-  Object.assign(room, filteredData);
-
-  await roomRepo.updateRoom(room);
-
-  return room;
-}
-
-export const deleteRoomService = async (roomId, hotelId) => {
-  if(!mongoose.Types.ObjectId.isValid(hotelId) || !mongoose.Types.ObjectId.isValid(roomId)){
-    throw new ApiError(400, "Invalid ID");
-  }
-
-  const hotel = await roomRepo.existsHotelById(hotelId);
-
-  if(!hotel) throw new ApiError(404, "Hotel not found");
-
-  const room = await roomRepo.findRoomById(roomId, hotelId);
-
-  if(!room) throw new ApiError(404, "Room not found");
-
-  await roomRepo.deleteRoom(room);
-
-  return room;
-}

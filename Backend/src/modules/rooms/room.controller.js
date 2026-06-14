@@ -1,33 +1,17 @@
-import {
-  createRoomService,
-  getRoomService,
-  getRoomByIdService,
-  updateRoomService,
-  deleteRoomService,
-} from "./room.service.js";
-
-export const createRoom = async (req, res) => {
-  const room = await createRoomService(req.params.hotelId, req.validatedData || req.body);
-
-  res.status(201).json({
-    success: true,
-    message: "Room Created Successfully",
-    data: room,
-  });
-};
+import { getRoomService } from "./room.service.js";
 
 export const getRooms = async (req, res) => {
-  const { price, capacity, type, status } = req.query;
-  const { hotelId } = req.params;
+  const {minPrice, maxPrice, capacity, type, operationalStatus, page, limit} = req.validatedData;
 
   const filters = {
-    price,
+    minPrice,
+    maxPrice,
     capacity,
     type,
-    status,
+    operationalStatus,
   };
 
-  const rooms = await getRoomService(filters, hotelId);
+  const rooms = await getRoomService(filters, req.targetHotel, page, limit);
 
   res.status(200).json({
     success: true,
@@ -37,35 +21,10 @@ export const getRooms = async (req, res) => {
 };
 
 export const getRoomById = async (req, res) => {
-  const { roomId, hotelId } = req.params;
-
-  const room = await getRoomByIdService(roomId, hotelId);
 
   res.status(200).json({
     success: true,
     message: "Room fetched Successfully",
-    data: room,
-  });
-};
-
-export const updateRoom = async (req, res) => {
-  const { roomId, hotelId } = req.params;
-  const room = await updateRoomService(roomId, hotelId, req.validatedData || req.body);
-
-  res.status(200).json({
-    success: true,
-    message: "Room updated Successfully",
-    data: room,
-  });
-};
-
-export const deleteRoom = async (req, res) => {
-  const { roomId, hotelId } = req.params;
-  const room = await deleteRoomService(roomId, hotelId);
-
-  res.status(200).json({
-    success: true,
-    message: "Room Record Deleted Successfully",
-    data: room,
+    data: req.targetRoom,
   });
 };

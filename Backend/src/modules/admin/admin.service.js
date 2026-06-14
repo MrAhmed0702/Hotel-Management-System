@@ -1,11 +1,6 @@
 import * as adminRepo from "./admin.repository.js";
 import { ApiError } from "../../utils/apiError.js";
-
-export const escapeRegex = (value = "") =>
-    String(value).replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-    );
+import { escapeRegex } from "../../utils/escapeRegex.js";
 
 export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
     page = Math.max(1, Number(page));

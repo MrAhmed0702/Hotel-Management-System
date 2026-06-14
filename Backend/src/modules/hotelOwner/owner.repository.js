@@ -1,16 +1,8 @@
 import Hotel from "../hotels/hotel.model.js";
+import Room from "../rooms/room.model.js";
+import { escapeRegex } from "../../utils/escapeRegex.js";
 
-export const findOwnerHotelByNameAndCity = async (
-    hotelName,
-    city
-) => {
-
-    const escapeRegex = (value) =>
-        value.replace(
-            /[.*+?^${}()|[\]\\]/g,
-            "\\$&"
-        );
-
+export const findOwnerHotelByNameAndCity = async (hotelName, city) => {
     return Hotel.exists({
         hotelName: {
             $regex: `^${escapeRegex(hotelName)}$`,
@@ -41,25 +33,6 @@ export const getOwnerHotels = async (userId, filter, skip, limit) => {
     }
 }
 
-export const findOwnerHotelById = async (userId, hotelId) => {
-    return Hotel.findOne({
-        _id: hotelId,
-        owner: userId
-    });
-}
-
-export const deleteHotel = async (hotelId) => {
-    const hotel = await Hotel.findById(hotelId);
-
-    if (!hotel) {
-        return null;
-    }
-
-    hotel.isDeleted = true;
-    hotel.deletedAt = new Date();
-    hotel.status = "inactive";
-
-    await hotel.save();
-
-    return hotel;
+export const createRoom = async (data) => {
+    return await Room.create(data);
 }

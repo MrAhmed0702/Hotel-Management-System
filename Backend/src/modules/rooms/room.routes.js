@@ -1,20 +1,20 @@
 import express from "express";
-import { verifyToken } from "../../middleware/verifyToken.middleware.js";
-import { authorize } from "../../middleware/authorize.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
-import { createRoom, getRooms, getRoomById, updateRoom, deleteRoom } from "./room.controller.js";
-import { createRoomSchema, updateRoomSchema } from "./room.validation.js";
+import { getRoomsSchema } from "./room.validation.js";
+import { validateHotelId } from "../../middleware/validateHotelId.middleware.js";
+import { validateRoomId } from "../../middleware/validateRoomId.middleware.js";
+import { getRoomById, getRooms } from "./room.controller.js";
 
 const router = express.Router({ mergeParams: true });
 
-router.post("/", verifyToken, authorize("admin"), validate(createRoomSchema), createRoom);
+router.use(validateHotelId);
 
-router.get("/", getRooms);
+router.get(
+    "/",
+    validate(getRoomsSchema, "query"),
+    getRooms
+);
 
-router.get("/:roomId", getRoomById);
-
-router.patch("/:roomId", verifyToken, authorize("admin"), validate(updateRoomSchema), updateRoom);
-
-router.delete("/:roomId", verifyToken, authorize("admin"), deleteRoom);
+router.get("/:roomId", validateRoomId, getRoomById);
 
 export default router;

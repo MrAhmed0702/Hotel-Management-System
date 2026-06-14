@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
 import path from "path";
 import * as ownerRepo from "./owner.repository.js";
 import { ApiError } from "../../utils/apiError.js";
 import { deleteImage } from "../../utils/deleteImage.js";
+import { escapeRegex } from "../../utils/escapeRegex.js";
 
 export const createHotelService = async (userId, hotelData) => {
     const hotelName = hotelData.hotelName.trim().toLowerCase();
@@ -28,15 +28,17 @@ export const getMyHotelsService = async (userId, query) => {
     const filtered = {};
 
     if (search) {
+        const safeSearch = escapeRegex(search);
+
         filtered.$or = [
-            { hotelName: { $regex: search, $options: "i" } },
-            { "address.street": { $regex: search, $options: "i" } },
-            { "address.city": { $regex: search, $options: "i" } },
-            { "address.state": { $regex: search, $options: "i" } },
-            { "address.zipCode": { $regex: search, $options: "i" } },
-            { "address.country": { $regex: search, $options: "i" } },
+            { hotelName: { $regex: safeSearch, $options: "i" } },
+            { "address.street": { $regex: safeSearch, $options: "i" } },
+            { "address.city": { $regex: safeSearch, $options: "i" } },
+            { "address.state": { $regex: safeSearch, $options: "i" } },
+            { "address.zipCode": { $regex: safeSearch, $options: "i" } },
+            { "address.country": { $regex: safeSearch, $options: "i" } },
             { category: search.toLowerCase() }
-        ]
+        ];
     }
 
     const { allHotels, totalHotels } = await ownerRepo.getOwnerHotels(userId, filtered, skip, limitNumber);
@@ -55,36 +57,12 @@ export const getMyHotelsService = async (userId, query) => {
     }
 }
 
-export const getHotelByIdService = async (userId, hotelId) => {
-    if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-        throw new ApiError(400, "Invalid Hotel Id")
-    }
-
-    const hotel = await ownerRepo.findOwnerHotelById(userId, hotelId);
-
-    if (!hotel) {
-        throw new ApiError(404, "Hotel Not found")
-    }
-
-    return hotel
-}
-
 export const updateHotelService = async (
-    userId,
-    hotelId,
+    hotel,
     hotelData,
     deletedImages = [],
     newImages = []
 ) => {
-
-    if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-        throw new ApiError(400, "Invalid hotel ID");
-    }
-
-    const hotel = await ownerRepo.findOwnerHotelById(
-        userId,
-        hotelId
-    );
 
     if (!hotel) {
         throw new ApiError(
@@ -226,18 +204,76 @@ export const updateHotelService = async (
     return hotel.toObject();
 };
 
-export const deleteHotelService = async (userId, hotelId) => {
-    if (!mongoose.Types.ObjectId.isValid(hotelId)) {
-        throw new ApiError(400, "Invalid Hotel Id")
-    }
-
-    const hotel = await ownerRepo.findOwnerHotelById(userId, hotelId);
+export const deleteHotelService = async (hotel) => {
 
     if (!hotel) {
         throw new ApiError(404, "Hotel Not found");
     }
 
-    const deletedHotel = await ownerRepo.deleteHotel(hotelId);
+    hotel.isDeleted = true;
+    hotel.deletedAt = new Date();
+    hotel.status = "inactive";
 
-    return deletedHotel;
+    await hotel.save();
+
+    return hotel;
 }
+
+export const createRoomService = async (hotel, roomData) => {
+
+    if (!hotel) {
+        throw new ApiError(404, "Hotel not found or you do not have permission");
+    }
+
+    try {
+        const room = await ownerRepo.createRoom({
+            ...roomData,
+            hotelId: hotel._id,
+        });
+
+        return room;
+    } catch (err) {
+        if (err.code === 11000) {
+            throw new ApiError(400, "Room number already exists for this hotel");
+        }
+        throw err;
+    }
+};
+
+export const updateRoomService = async (room, roomUpdatedData) => {
+
+    if (!room) {
+        throw new ApiError(404, "Room not found");
+    }
+
+    const allowedUpdates = ["type", "price", "capacity", "description", "amenities", "operationalStatus"];
+
+    const filteredData = Object.fromEntries(
+        Object.entries(roomUpdatedData).filter(([key]) => allowedUpdates.includes(key))
+    );
+
+    if (Object.keys(filteredData).length === 0) {
+        throw new ApiError(400, `No valid fields provided for update`);
+    }
+
+    Object.assign(room, filteredData);
+
+    await room.save();
+
+    return room;
+};
+
+export const deleteRoomService = async (room) => {
+
+    if (!room) {
+        throw new ApiError(404, "Room not found or you do not have permission");
+    }
+
+    room.isDeleted = true;
+    room.deletedAt = new Date();
+    room.operationalStatus = "inactive";
+
+    await room.save();
+
+    return room;
+};

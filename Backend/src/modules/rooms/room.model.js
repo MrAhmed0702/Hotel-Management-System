@@ -1,66 +1,92 @@
 import { Schema, model, Types } from "mongoose";
+import { ROOM_TYPES, ROOM_OPERATIONAL_STATUSES } from "./room.constants.js";
+import validator from "validator";
 
 const roomSchema = new Schema(
   {
     hotelId: {
       type: Types.ObjectId,
       ref: "Hotel",
-      required: true,
+      required: [true, "Hotel ID is required"],
       index: true,
     },
 
     roomNumber: {
-      type: Number,
-      min: [1, "Room Number must be greater than 0"],
-      required: true,
+      type: String,
+      required: [true, "Room number is required"],
+      trim: true,
     },
 
     type: {
       type: String,
-      enum: ["single", "double", "suite", "deluxe", "family"],
-      required: true,
+      enum: ROOM_TYPES,
+      required: [true, "Room type is required"],
+      lowercase: true,
+      trim: true,
     },
 
     description: {
       type: String,
+      trim: true,
       minlength: 20,
       maxlength: 450,
-      trim: true,
       default: "",
     },
 
     price: {
       type: Number,
+      required: [true, "Price is required"],
       min: [1, "Price must be greater than 0"],
-      required: true,
     },
 
     capacity: {
       type: Number,
+      required: [true, "Capacity is required"],
       min: [1, "Capacity must be greater than 0"],
-      required: true,
     },
 
     amenities: {
       type: [String],
       default: [],
-    },  
+    },
 
-    status: {
+    operationalStatus: {
       type: String,
-      enum: ["available", "maintenance", "inactive"],
+      enum: ROOM_OPERATIONAL_STATUSES,
       default: "available",
+      index: true,
+    },
+
+    images: {
+      type: [
+        {
+          type: String,
+          trim: true,
+          validate: {
+            validator: validator.isURL,
+            message: "Invalid image URL",
+          },
+        },
+      ],
+      default: [],
+      validate: {
+        validator: (arr) => arr.length <= 10,
+        message: "Maximum 10 images allowed",
+      },
     },
 
     isDeleted: {
       type: Boolean,
       default: false,
+      select: false,
     },
 
     deletedAt: {
       type: Date,
       default: null,
+      select: false,
     },
+
   },
   {
     timestamps: true,
@@ -71,20 +97,36 @@ const roomSchema = new Schema(
 
         delete ret._id;
         delete ret.__v;
-        delete ret.isDeleted;
-        delete ret.deletedAt;
 
         return ret;
       },
     },
-  },
+
+  }
 );
 
-roomSchema.index({ hotelId: 1, roomNumber: 1 }, { unique: true });
+roomSchema.index(
+  { hotelId: 1, roomNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isDeleted: false },
+  }
+);
 
-roomSchema.pre(/^find/, function(next){
+roomSchema.index({ hotelId: 1, createdAt: -1 });
+
+roomSchema.index({ hotelId: 1, operationalStatus: 1 });
+
+roomSchema.index({ hotelId: 1, type: 1, operationalStatus: 1 });
+
+roomSchema.index({ hotelId: 1, operationalStatus: 1, price: 1 });
+
+roomSchema.index({ hotelId: 1, operationalStatus: 1, capacity: 1 });
+
+roomSchema.index({ hotelId: 1, amenities: 1 });
+
+roomSchema.pre(/^find/, function () {
   this.where({ isDeleted: false });
-  next();
 });
 
 export default model("Room", roomSchema);

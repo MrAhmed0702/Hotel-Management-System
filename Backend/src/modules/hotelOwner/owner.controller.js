@@ -2,12 +2,13 @@ import { deleteImage } from "../../utils/deleteImage.js";
 import {
     createHotelService,
     getMyHotelsService,
-    getHotelByIdService,
     updateHotelService,
-    deleteHotelService
+    deleteHotelService,
+    createRoomService,
+    updateRoomService,
+    deleteRoomService
 } from "./owner.service.js";
 
-import path from "path";
 
 // Create hotel
 export const createHotel = async (req, res, next) => {
@@ -34,7 +35,7 @@ export const createHotel = async (req, res, next) => {
 export const getMyHotels = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const { page = 1, limit = 10, search } = req.query;
+        const { page, limit, search } = req.validatedData;
 
         const result = await getMyHotelsService(userId, { page, limit, search });
 
@@ -51,13 +52,10 @@ export const getMyHotels = async (req, res, next) => {
 // Get hotel by ID
 export const getHotelById = async (req, res, next) => {
     try {
-        const userId = req.user.id;
-        const hotelId = req.params.id;
-        const result = await getHotelByIdService(userId, hotelId);
         res.status(200).json({
             success: true,
             message: "Hotel fetched successfully",
-            data: result
+            data: req.targetHotel
         });
     } catch (error) {
         next(error);
@@ -67,9 +65,6 @@ export const getHotelById = async (req, res, next) => {
 // Update hotel
 export const updateHotel = async (req, res, next) => {
     try {
-        const userId = req.user.id;
-        const hotelId = req.params.id;
-
         const baseURL = `${req.protocol}://${req.get("host")}`;
 
         let deletedImages = [];
@@ -82,7 +77,7 @@ export const updateHotel = async (req, res, next) => {
 
         const newImages = req.files?.map(file => `${baseURL}/uploads/hotels/${file.filename}`) || [];
 
-        const result = await updateHotelService(userId, hotelId, req.validatedData, deletedImages, newImages);
+        const result = await updateHotelService(req.targetHotel, req.validatedData, deletedImages, newImages);
 
         res.status(200).json({
             success: true,
@@ -99,14 +94,57 @@ export const updateHotel = async (req, res, next) => {
 // Delete hotel
 export const deleteHotel = async (req, res, next) => {
     try {
-        const userId = req.user.id;
-        const hotelId = req.params.id;
-        const deletedHotel = await deleteHotelService(userId, hotelId);
+        const deletedHotel = await deleteHotelService(req.targetHotel);
 
         res.status(200).json({
             success: true,
             message: "Hotel deleted successfully",
             data: deletedHotel
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Create room
+export const createRoom = async (req, res, next) => {
+    try {
+        const roomData = req.validatedData;
+        const result = await createRoomService(req.targetHotel, roomData);
+        res.status(201).json({
+            success: true,
+            message: "Room created successfully",
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Update room
+export const updateRoom = async (req, res, next) => {
+    try {
+        const roomData = req.validatedData;
+
+        const result = await updateRoomService(req.targetRoom, roomData);
+        res.status(200).json({
+            success: true,
+            message: "Room updated successfully",
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Delete room
+export const deleteRoom = async (req, res, next) => {
+    try {
+        const deletedRoom = await deleteRoomService(req.targetRoom);
+        res.status(200).json({
+            success: true,
+            message: "Room deleted successfully",
+            data: deletedRoom
         });
     } catch (error) {
         next(error);

@@ -6,7 +6,7 @@ import { validateHotelId } from "../../middleware/validateHotelId.middleware.js"
 
 const router = express.Router();
 
-router.get("/", validate(getHotelsSchema), getAllHotels);
+router.get("/", validate(getHotelsSchema, "query"), getAllHotels);
 
 router.get("/:hotelId", validateHotelId, getHotelById);
 

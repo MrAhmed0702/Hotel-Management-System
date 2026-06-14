@@ -1,35 +1,107 @@
 import Joi from "joi";
+import { ROOM_TYPES, ROOM_OPERATIONAL_STATUSES } from "./room.constants.js";
+
+const amenitiesSchema = Joi.array()
+    .items(
+        Joi.string()
+            .trim()
+            .lowercase()
+            .min(2)
+            .max(50)
+  )
+  .unique()
+  .max(50)
+  .default([]);
 
 export const createRoomSchema = Joi.object({
-  roomNumber: Joi.number().integer().min(1).required(),
+  roomNumber: Joi.string()
+    .trim()
+    .pattern(/^[A-Za-z0-9-]+$/)
+    .min(1)
+    .max(20)
+    .required(),
 
-  type: Joi.string().valid("single", "double", "suite", "deluxe", "family").required(),
+  type: Joi.string()
+    .trim()
+    .lowercase()
+    .valid(...ROOM_TYPES)
+    .required(),
 
-  description: Joi.string().trim().min(20).max(450).allow("", null),
+  description: Joi.string()
+    .trim()
+    .min(20)
+    .max(450)
+    .allow(""),
 
-  price: Joi.number().min(1).required(),
+  price: Joi.number()
+    .positive()
+    .precision(2)
+    .required(),
 
-  capacity: Joi.number().min(1).required(),
+  capacity: Joi.number()
+    .integer()
+    .positive()
+    .required(),
 
-  amenities: Joi.array().items(Joi.string().trim()).default([]),
+  amenities: amenitiesSchema.default([]),
 
-  status: Joi.string()
-    .valid("available", "maintenance", "inactive")
+  operationalStatus: Joi.string()
+    .trim()
+    .lowercase()
+    .valid(...ROOM_OPERATIONAL_STATUSES)
     .default("available"),
-});
+})
+  .required()
+  .options({
+    abortEarly: false,
+    stripUnknown: true,
+  });
 
 export const updateRoomSchema = Joi.object({
-  type: Joi.string().valid("single", "double", "suite", "deluxe", "family"),
+  type: Joi.string()
+    .trim()
+    .lowercase()
+    .valid(...ROOM_TYPES),
 
-  description: Joi.string().trim().min(20).max(450).allow("", null),
+  description: Joi.string()
+    .trim()
+    .min(20)
+    .max(450)
+    .allow(""),
 
-  price: Joi.number().min(1),
+  price: Joi.number()
+    .positive()
+    .precision(2),
 
-  capacity: Joi.number().min(1),
+  capacity: Joi.number()
+    .integer()
+    .positive(),
 
-  amenities: Joi.array().items(Joi.string().trim()).default([]),
+  amenities: amenitiesSchema,
 
-  status: Joi.string()
-    .valid("available", "maintenance", "inactive")
-    .default("available"),
-}).or("type", "description", "price", "capacity", "amenities", "status");
+  operationalStatus: Joi.string()
+    .trim()
+    .lowercase()
+    .valid(...ROOM_OPERATIONAL_STATUSES),
+})
+  .min(1)
+  .options({
+    abortEarly: false,
+    stripUnknown: true,
+  });
+
+  export const getRoomsSchema = Joi.object({
+  type: Joi.string().trim().lowercase().valid(...ROOM_TYPES),
+
+  minPrice: Joi.number().min(0),
+
+  maxPrice: Joi.number().min(Joi.ref("minPrice")),
+
+  capacity: Joi.number().integer().positive(),
+
+  operationalStatus: Joi.string().trim().lowercase().valid(...ROOM_OPERATIONAL_STATUSES),
+
+  page: Joi.number().integer().min(1).default(1),
+
+  limit: Joi.number().integer().min(1).max(100).default(10),
+}).unknown(false);
