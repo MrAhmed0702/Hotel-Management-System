@@ -8,7 +8,7 @@ export const roomExists = async (hotelId, roomType, session) => {
     hotelId,
     type: roomType,
     isDeleted: false,
-    operationalStatus: "active",
+    operationalStatus: "available",
   })
     .select("price capacity")
     .session(session)
