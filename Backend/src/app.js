@@ -10,7 +10,6 @@ import ownerRoutes from "./modules/hotelOwner/owner.routes.js";
 import hotelRoutes from "./modules/hotels/hotel.routes.js";
 import roomRoutes from "./modules/rooms/room.routes.js";
 import hotelBookingRoutes from "./modules/bookings/hotelBooking.routes.js";
-import bookingRoutes from "./modules/bookings/booking.routes.js";
 import createPaymentRoutes from "./modules/payments/createPayment.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
 import webhookRoutes from "./modules/payments/webhooks/webhook.routes.js";
@@ -67,7 +66,6 @@ app.use("/owner", ownerRoutes);
 app.use("/hotels", hotelRoutes);
 app.use("/hotels/:hotelId/rooms", roomRoutes);
 app.use("/hotels/:hotelId/bookings", hotelBookingRoutes);
-app.use("/bookings", bookingRoutes);
 app.use("/bookings/:bookingId/payments", createPaymentRoutes);
 app.use("/payments", paymentRoutes);
 

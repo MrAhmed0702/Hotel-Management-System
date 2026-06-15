@@ -3,21 +3,15 @@ import { calculateNightsUTC } from "../../utils/nightsStayCalculationLogic.js";
 import mongoose, { Types } from "mongoose";
 import { ApiError } from "../../utils/apiError.js";
 
-export const createBookingService = async (userId, hotelId, data) => {
+export const createBookingService = async (userId, hotel, data) => {
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
-    if (!Types.ObjectId.isValid(hotelId)) {
-      throw new ApiError(400, "Invalid hotelId");
-    }
+    const hotelObjectId = hotel._id;
 
-    const hotelObjectId = new Types.ObjectId(hotelId);
     const now = new Date();
-
-    const hotel = await BookingRepo.hotelExists(hotelObjectId, session);
-    if (!hotel) throw new ApiError(404, "Hotel not found");
 
     const room = await BookingRepo.roomExists(
       hotelObjectId,
@@ -83,40 +77,4 @@ export const createBookingService = async (userId, hotelId, data) => {
   } finally {
     session.endSession();
   }
-};
-
-export const getMyBookingsService = async (userId, page, limit) => {
-  if (!Types.ObjectId.isValid(userId)) {
-    throw new ApiError(400, "Invalid userId");
-  }
-
-  return BookingRepo.getBookings(new Types.ObjectId(userId), page, limit);
-};
-
-export const getBookingByIdService = async (userId, bookingId) => {
-  if (!Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(bookingId)) {
-    throw new ApiError(400, "Invalid IDs");
-  }
-
-  const booking = await BookingRepo.getBookingById(
-    new Types.ObjectId(userId),
-    new Types.ObjectId(bookingId)
-  );
-
-  if (!booking) throw new ApiError(404, "Booking not found");
-
-  return booking;
-};
-
-export const cancelBookingService = async (userId, bookingId) => {
-  const booking = await BookingRepo.cancelBooking(
-    new Types.ObjectId(bookingId),
-    new Types.ObjectId(userId)
-  );
-
-  if (!booking) {
-    throw new ApiError(400, "Cannot cancel booking");
-  }
-
-  return booking;
 };

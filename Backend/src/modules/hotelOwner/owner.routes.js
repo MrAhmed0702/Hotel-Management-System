@@ -10,6 +10,8 @@ import {
     createRoom,
     updateRoom,
     deleteRoom,
+    getOwnerBookings,
+    getBookingDetailsForOwner
 } from "./owner.controller.js";
 import { validateFileContent } from "../../middleware/fileValidation.middleware.js";
 import { upload } from "../../middleware/upload.middleware.js";
@@ -19,6 +21,9 @@ import { validateRoomId } from "../../middleware/validateRoomId.middleware.js";
 import { validateHotelOwnership } from "../../middleware/validateHotelOwnership.middleware.js";
 import { validateHotelId } from "../../middleware/validateHotelId.middleware.js";
 import { createRoomSchema, updateRoomSchema } from "../rooms/room.validation.js";
+import { validateOwnerBookingAccess } from "../../middleware/validateBookingAccess.middleware.js";
+import { validateBookingId } from "../../middleware/validateBookingId.middleware.js";
+import { getOwnerBookingsSchema } from "../bookings/booking.validation.js";
 
 const router = express.Router();
 
@@ -81,7 +86,17 @@ router.delete(
 );
 
 //Booking management routes by owner
-// router.get("bookings", getMyBookings);
-// router.get("bookings/:id", getBookingDetails);
+router.get(
+  "/bookings",
+  validate(getOwnerBookingsSchema, "query"),
+  getOwnerBookings
+);
+
+router.get(
+  "/bookings/:bookingId",
+  validateBookingId,
+  validateOwnerBookingAccess,
+  getBookingDetailsForOwner
+);
 
 export default router;

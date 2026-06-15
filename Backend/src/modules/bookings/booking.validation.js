@@ -30,3 +30,46 @@ export const createBookingSchema = Joi.object({
     "any.required": "Number of guests is required",
   }),
 }).unknown(false);
+
+export const getBookingsSchema =
+  Joi.object({
+    page: Joi.number()
+      .integer()
+      .min(1)
+      .default(1),
+
+    limit: Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .default(10)
+  }).unknown(false);
+
+export const cancelBookingSchema = Joi.object({
+  reason: Joi.string()
+    .trim()
+    .max(500)
+    .allow("")
+}).unknown(false);
+
+export const getOwnerBookingsSchema = Joi.object({
+  status: Joi.string()
+    .valid(
+      "pending",
+      "confirmed",
+      "cancelled",
+      "expired"
+    )
+    .optional(),
+
+  page: Joi.number()
+    .integer()
+    .min(1)
+    .default(1),
+    
+  limit: Joi.number()
+    .integer()
+    .min(1)
+    .max(100)
+    .default(10)
+}).unknown(false);

@@ -1,5 +1,13 @@
 import Joi from "joi";
 
+export const getUsersSchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  search: Joi.string().trim(),
+  sort: Joi.string().valid("createdAt", "firstName", "lastName", "email").default("createdAt"),
+  order: Joi.string().valid("asc", "desc").default("desc")
+}).unknown(false);
+
 export const updateUserSchema = Joi.object({
     firstName: Joi.string().trim().min(2).max(50),
 
@@ -45,4 +53,36 @@ export const updateHotelStatusSchema = Joi.object({
       "suspended",
       "inactive"
     ).required()
+}).unknown(false);
+
+export const getAdminBookingsSchema = Joi.object({
+  status: Joi.string()
+    .valid(
+      "pending",
+      "confirmed",
+      "cancelled",
+      "expired"
+    )
+    .optional(),
+
+  paymentStatus: Joi.string()
+    .valid(
+      "none",
+      "initiated",
+      "paid",
+      "failed",
+      "refunded"
+    )
+    .optional(),
+
+  page: Joi.number()
+    .integer()
+    .min(1)
+    .default(1),
+
+  limit: Joi.number()
+    .integer()
+    .min(1)
+    .max(100)
+    .default(10)
 }).unknown(false);

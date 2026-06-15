@@ -6,7 +6,8 @@ import {
     deleteHotelService,
     createRoomService,
     updateRoomService,
-    deleteRoomService
+    deleteRoomService,
+    getOwnerBookingsService
 } from "./owner.service.js";
 
 
@@ -145,6 +146,31 @@ export const deleteRoom = async (req, res, next) => {
             success: true,
             message: "Room deleted successfully",
             data: deletedRoom
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getOwnerBookings = async (req, res, next) => {
+    try {
+        const result = await getOwnerBookingsService(req.user.id, req.validatedData)
+        res.status(200).json({
+            success: true,
+            message: "Bookings fetched successfully",
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getBookingDetailsForOwner = async (req, res, next) => {
+    try {
+        res.status(200).json({
+            success: true,
+            message: "Booking details fetched successfully",
+            data: req.targetBooking
         });
     } catch (error) {
         next(error);

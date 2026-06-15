@@ -277,3 +277,29 @@ export const deleteRoomService = async (room) => {
 
     return room;
 };
+
+export const getOwnerBookingsService = async (ownerId, querys) => {
+    const { status, page, limit } = querys;
+    const pageNumber = Math.max(1, Number(page));
+    const limitNumber = Math.min(100, Math.max(1, Number(limit)));
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const query = {}
+
+    if(status) query.status = status;
+
+    const { allBookings, totalBookings } = await ownerRepo.getBookings(ownerId, query, skip, limitNumber);
+
+    const totalPages = Math.max(1, Math.ceil(totalBookings / limitNumber));
+
+    return {
+        allBookings,
+        totalBookings,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPrevPage: pageNumber > 1,
+        hasData: totalBookings > 0
+    }
+}

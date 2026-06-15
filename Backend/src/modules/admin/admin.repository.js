@@ -5,7 +5,7 @@ export const getAllUsers = async ({ query, skip, limit, sortBy }) => {
 
     const finalQuery = { ...query };
 
-    const [allUsers, totalUsers] = await Promise.all([
+    const [users, totalUsers] = await Promise.all([
         User.find(finalQuery)
             .sort({
                 ...sortBy,
@@ -19,7 +19,7 @@ export const getAllUsers = async ({ query, skip, limit, sortBy }) => {
     ]);
 
     return {
-        allUsers,
+        users,
         totalUsers
     };
 };
@@ -73,6 +73,10 @@ export const checkPhoneNumberExists = async (phoneNumber, userId) => {
 
 export const countAdmins = async () => {
     return await User.countDocuments({ role: "admin", isDeleted: false });
+}
+
+export const countHotelsByOwner = async (ownerId) => {
+    return await Hotel.countDocuments({ owner: ownerId, isDeleted: false });
 }
 
 export const getHotelsByStatus = async (status = "pending") => {

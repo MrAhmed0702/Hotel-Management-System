@@ -1,3 +1,7 @@
+import { Types } from "mongoose";
+import { ApiError } from "../utils/apiError.js";
+import Hotel from "../modules/hotels/hotel.model.js";
+
 export const validateHotelId = async (
   req,
   res,

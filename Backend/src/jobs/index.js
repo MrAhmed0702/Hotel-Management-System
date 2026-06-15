@@ -1,10 +1,27 @@
 import cron from "node-cron";
 import { expireBookingsJob } from "./bookingExpiration.job.js";
 
+let isRunning = false;
+
 export const startJobs = () => {
-  // every 1 minute
-  cron.schedule("* * * * *", async () => {
-    console.log("⏳ Running expiration job...");
-    await expireBookingsJob();
-  });
+
+  cron.schedule(
+    "* * * * *",
+    async () => {
+
+      if (isRunning) {
+        return;
+      }
+
+      isRunning = true;
+
+      try {
+        await expireBookingsJob();
+      } finally {
+        isRunning = false;
+      }
+
+    }
+  );
+
 };

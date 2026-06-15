@@ -77,6 +77,8 @@ const bookingSchema = new Schema(
 
     cancelReason: {
       type: String,
+      trim: true,
+      maxlength: 500,
     },
 
     metadata: {
@@ -112,6 +114,12 @@ bookingSchema.index({
   checkOut: 1,
 });
 
+bookingSchema.index({
+  hotelId: 1,
+  status: 1,
+  createdAt: -1
+});
+
 bookingSchema.index(
   { status: 1, expiresAt: 1 },
   { partialFilterExpression: { status: "pending" } }
@@ -125,5 +133,10 @@ bookingSchema.index({ paymentStatus: 1, status: 1 });
 // Cleanup / filtering
 bookingSchema.index({ expiresAt: 1 });
 bookingSchema.index({ isDeleted: 1 });
+
+// Global soft-delete filter for all find queries
+bookingSchema.pre(/^find/, function () {
+  this.where({ isDeleted: false });
+}); 
 
 export default model("Booking", bookingSchema);

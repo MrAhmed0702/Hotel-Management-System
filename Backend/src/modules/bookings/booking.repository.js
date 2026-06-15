@@ -1,20 +1,14 @@
 import Booking from "./booking.model.js";
 import Room from "../rooms/room.model.js";
-import Hotel from "../hotels/hotel.model.js";
 
 const GRACE_MS = 2 * 60 * 1000;
-
-export const hotelExists = async (hotelId, session) => {
-  return Boolean(
-    await Hotel.exists({ _id: hotelId, isDeleted: false }).session(session),
-  );
-};
 
 export const roomExists = async (hotelId, roomType, session) => {
   return await Room.findOne({
     hotelId,
     type: roomType,
     isDeleted: false,
+    operationalStatus: "active",
   })
     .select("price capacity")
     .session(session)
@@ -35,10 +29,17 @@ export const countOverlappingBookings = async (
         hotelId,
         roomType,
         isDeleted: false,
-        status: { $in: ["confirmed", "pending"] },
-        expiresAt: { $gt: now },
+        $or: [
+          {
+            status: "confirmed"
+          },
+          {
+            status: "pending",
+            expiresAt: { $gt: now }
+          }
+        ],
         checkIn: { $lt: checkOut },
-        checkOut: { $gt: checkIn },
+        checkOut: { $gt: checkIn }
       },
     },
     {
@@ -63,44 +64,6 @@ export const countRoomsByType = async (hotelId, roomType, session) => {
 export const createBooking = async (data, session) => {
   const [booking] = await Booking.create([data], { session });
   return booking;
-};
-
-export const getBookings = async (userId, page, limit) => {
-  const [data, total] = await Promise.all([
-    Booking.find({ userId, isDeleted: false })
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean(),
-    Booking.countDocuments({ userId, isDeleted: false }),
-  ]);
-
-  return { data, total, page, limit };
-};
-
-export const getBookingById = async (userId, bookingId, session = null) => {
-  const query = Booking.findOne({
-    _id: bookingId,
-    userId,
-    isDeleted: false,
-  });
-
-  if (session) query.session(session);
-
-  return query.lean();
-};
-
-export const cancelBooking = async (bookingId, userId) => {
-  return Booking.findOneAndUpdate(
-    {
-      _id: bookingId,
-      userId,
-      status: { $in: ["pending", "confirmed"] },
-      paymentStatus: { $in: ["none"] },
-    },
-    { status: "cancelled" },
-    { new: true },
-  ).lean();
 };
 
 export const lockBookingForPayment = async (bookingId, userId, session) => {
@@ -156,4 +119,29 @@ export const updateFailedBooking = async (bookingId, userId, session) => {
     },
     { new: true, session },
   ).lean();
+};
+
+export const checkActiveBooking = async (userId) => {
+  return Booking.exists({
+    userId,
+    status: "confirmed"
+  });
+};
+
+export const getBookingsByAdmin = async (query, skip, limit) => {
+
+  const [bookings, totalBookings] = await Promise.all([
+
+    Booking.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit)
+      .populate("userId", "firstName lastName email phoneNumber")
+      .populate("hotelId", "hotelName owner")
+      .lean(),
+
+    Booking.countDocuments(query)
+  ]);
+
+  return {
+    bookings,
+    totalBookings
+  };
 };

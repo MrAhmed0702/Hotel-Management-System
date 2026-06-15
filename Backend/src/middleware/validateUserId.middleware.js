@@ -2,8 +2,10 @@ import { Types } from "mongoose";
 import User from "../modules/users/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 
-export const validateUserId = async (req, res, next, userId) => {
+export const validateUserId = async (req, res, next) => {
   try {
+    const { userId } = req.params;
+    
     if (!Types.ObjectId.isValid(userId)) {
       return next(new ApiError(400, "Invalid user ID"));
     }

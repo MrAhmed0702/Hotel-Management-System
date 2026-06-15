@@ -1,6 +1,7 @@
 import * as adminRepo from "./admin.repository.js";
 import { ApiError } from "../../utils/apiError.js";
 import { escapeRegex } from "../../utils/escapeRegex.js";
+import * as bookingRepo from "../bookings/booking.repository.js";
 
 export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
     page = Math.max(1, Number(page));
@@ -22,7 +23,7 @@ export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
         ];
     }
 
-    const { allUsers, totalUsers } = await adminRepo.getAllUsers({
+    const { users, totalUsers } = await adminRepo.getAllUsers({
         query,
         skip,
         limit,
@@ -32,7 +33,7 @@ export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
     const totalPages = Math.max(1, Math.ceil(totalUsers / limit));
 
     return {
-        allUsers,
+        users,
         totalUsers,
         page,
         limit,
@@ -150,6 +151,22 @@ export const deleteUserService = async (currentAdmin, targetUser) => {
         throw new ApiError(400, "Cannot delete the last admin account");
     }
 
+    if (targetUser.role === "owner") {
+        const hotelsCount = await adminRepo.countHotelsByOwner(targetUser._id);
+
+        if (hotelsCount > 0) {
+            throw new ApiError(400, "Cannot delete owner who has hotels");
+        }
+    }
+
+    if (targetUser.role === "user") {
+        const activeBooking = await bookingRepo.checkActiveBooking(targetUser._id);
+
+        if(activeBooking) {
+            throw new ApiError(400, "Cannot delete user who has active bookings");
+        }
+    }
+
     targetUser.isDeleted = true;
     targetUser.deletedAt = new Date();
 
@@ -216,3 +233,38 @@ export const updateHotelStatusService = async (adminId, hotel, status) => {
 
     return hotel;
 }
+
+export const getAllBookingsService = async ( queryData ) => {
+  const { page, limit, status, paymentStatus } = queryData;
+
+  const pageNumber = Math.max(1, Number(page));
+
+  const limitNumber = Math.min(100, Math.max(1, Number(limit)));
+
+  const skip = (pageNumber - 1) * limitNumber;
+
+  const query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
+  if (paymentStatus) {
+    query.paymentStatus = paymentStatus;
+  }
+
+  const { bookings, totalBookings } = await bookingRepo.getBookingsByAdmin(query, skip, limitNumber);
+
+  const totalPages = Math.max(1, Math.ceil(totalBookings / limitNumber));
+
+  return {
+    bookings,
+    totalBookings,
+    page: pageNumber,
+    limit: limitNumber,
+    totalPages,
+    hasNextPage: pageNumber < totalPages,
+    hasPrevPage: pageNumber > 1,
+    hasData: totalBookings > 0
+  };
+};

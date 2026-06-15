@@ -106,3 +106,47 @@ export const restoreSoftDeletedUserById = async (id) => {
   await userRepo.restoreUser(user);
   return user;
 };
+
+export const getMyBookingsService = async (userId, query) => {
+
+  const { page = 1, limit = 10 } = query;
+
+  const { bookings, totalCount } = await userRepo.findBookingsByUser(userId, page, limit );
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+
+  return {
+    bookings,
+    pagination: {
+      page,
+      limit,
+      totalCount,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+  };
+};
+
+export const cancelBookingService = async (booking, reason) => {
+  if (booking.status !== "pending") {
+    throw new ApiError(
+      400,
+      "Only pending bookings can be cancelled"
+    );
+  }
+
+  if (booking.paymentStatus !== "none") {
+    throw new ApiError(
+      400,
+      "Only unpaid bookings can be cancelled"
+    );
+  }
+
+  booking.status = "cancelled";
+  booking.cancelReason = reason;
+
+  await booking.save();
+
+  return booking;
+}

@@ -1,13 +1,7 @@
-import { getAllUsersService, getDeletedUsersService, updateUserService, updateRoleService, deleteUserService, restoreUserService, getHotelsByStatusService, updateHotelStatusService } from "./admin.service.js";
+import { getAllUsersService, getDeletedUsersService, updateUserService, updateRoleService, deleteUserService, restoreUserService, getHotelsByStatusService, updateHotelStatusService, getAllBookingsService } from "./admin.service.js";
 
 export const getAllUsers = async (req, res) => {
-    const {
-        page = 1,
-        limit = 10,
-        search = "",
-        sort = "createdAt",
-        order = "desc"
-    } = req.query;
+    const { page, limit, search, sort, order } = req.validatedData;
 
     const allowedSortFields = [
         "createdAt",
@@ -37,13 +31,7 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const getDeletedUsers = async (req, res) => {
-    const {
-        page = 1,
-        limit = 10,
-        search = "",
-        sort = "createdAt",
-        order = "desc"
-    } = req.query;
+    const { page, limit, search, sort, order } = req.validatedData;
 
     const allowedSortFields = [
         "createdAt",
@@ -121,7 +109,7 @@ export const restoreUser = async (req, res) => {
 }
 
 export const getHotelsByStatus = async (req, res) => {
-    const { status } = req.query;
+    const { status } = req.validatedData;
 
     const hotels = await getHotelsByStatusService(status);
 
@@ -149,3 +137,23 @@ export const updateHotelStatus = async (req, res) => {
         data: updatedHotelStatus
     })
 }
+
+export const getAllBookings = async (req, res) => {
+  const result = await getAllBookingsService(
+    req.validatedData
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Bookings fetched successfully",
+    data: result
+  });
+};
+
+export const getBookingDetails = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Booking fetched successfully",
+    data: req.targetBooking
+  });
+};
