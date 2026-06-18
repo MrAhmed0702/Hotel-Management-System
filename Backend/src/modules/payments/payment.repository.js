@@ -73,11 +73,7 @@ export const updatePayment = async (paymentId, razorpayPaymentId, session) => {
 };
 
 // 🔹 Mark payment as FAILED
-export const updateFailedPayment = async (
-  paymentId,
-  razorpayPaymentId,
-  session
-) => {
+export const updateFailedPayment = async (paymentId, razorpayPaymentId, failureData, session) => {
   return await Payment.findOneAndUpdate(
     {
       _id: paymentId,
@@ -86,6 +82,8 @@ export const updateFailedPayment = async (
     {
       status: "failed",
       razorpayPaymentId,
+      failureReason: failureData?.reason,
+      gatewayResponse: failureData?.metadata
     },
     {
       new: true,
@@ -93,4 +91,36 @@ export const updateFailedPayment = async (
       runValidators: true,
     }
   ).lean();
+};
+
+export const markOrderCreationFailed = async (paymentId) => {
+  await Payment.updateOne(
+    {
+      _id: paymentId,
+    },
+    {
+      status: "failed",
+      failureReason: "razorpay_order_creation_failed",
+    }
+  );
+};
+
+export const getExistingOrder = async (payment) => {
+  return payment.razorpayOrderId
+    ? {
+      id: payment.razorpayOrderId,
+      amount: payment.amount,
+      currency: payment.currency
+    }
+    : null;
+};
+
+export const findByIdAndUser = async (paymentId, userId) => {
+  return await Payment.findOne({
+    _id: paymentId,
+    userId,
+  })
+    .populate("bookingId", "userId hotelId")
+    .populate("userId", "firstName lastName email")
+    .lean();
 };

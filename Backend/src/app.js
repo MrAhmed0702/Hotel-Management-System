@@ -70,12 +70,7 @@ app.use("/bookings/:bookingId/payments", createPaymentRoutes);
 app.use("/payments", paymentRoutes);
 
 app.use((req, res, next) => {
-  next(
-    new ApiError(
-      404,
-      `Route ${req.originalUrl} not found`
-    )
-  );
+  next(new ApiError(404, `Route ${req.originalUrl} not found`));
 });
 
 app.use((err, req, res, next) => {

@@ -96,4 +96,7 @@ const paymentSchema = new Schema(
 paymentSchema.index({ bookingId: 1, status: 1 });
 paymentSchema.index({ userId: 1, createdAt: -1 });
 
+paymentSchema.index({ razorpayOrderId: 1 });
+paymentSchema.index({ status: 1, expiresAt: 1 });
+
 export default model("Payment", paymentSchema);

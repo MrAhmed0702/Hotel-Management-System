@@ -1,49 +1,32 @@
 import Booking from "../modules/bookings/booking.model.js";
 import Payment from "../modules/payments/payment.model.js";
+import mongoose from "mongoose";
 
 export const expireBookingsJob = async () => {
-
-  const now = new Date();
+  const session = await mongoose.startSession();
 
   try {
+    session.startTransaction();
 
-    const expiredBookings =
-      await Booking.updateMany(
-        {
-          status: "pending",
-          expiresAt: { $lt: now }
-        },
-        {
-          status: "expired"
-        }
-      );
+    const now = new Date();
 
-    const expiredPayments =
-      await Payment.updateMany(
-        {
-          status: "pending",
-          expiresAt: { $lt: now }
-        },
-        {
-          status: "failed",
-          failureReason: "expired"
-        }
-      );
-
-    console.log(
-      `Expired bookings: ${expiredBookings.modifiedCount}`
+    await Booking.updateMany(
+      { status: "pending", expiresAt: { $lt: now } },
+      { status: "expired" },
+      { session }
     );
 
-    console.log(
-      `Expired payments: ${expiredPayments.modifiedCount}`
+    await Payment.updateMany(
+      { status: "pending", expiresAt: { $lt: now } },
+      { status: "failed", failureReason: "expired" },
+      { session }
     );
 
+    await session.commitTransaction();
   } catch (error) {
-
-    console.error(
-      "Expiration Job Error",
-      error
-    );
-
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
 };

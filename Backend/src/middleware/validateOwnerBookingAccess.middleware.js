@@ -1,6 +1,6 @@
 import { ApiError } from "../utils/apiError.js";
 
-const validateOwnerBookingAccess = async (req, res, next) => {
+export const validateOwnerBookingAccess = async (req, res, next) => {
   try {
     const booking = req.targetBooking;
     const owner = req.user.id.toString();
@@ -15,5 +15,3 @@ const validateOwnerBookingAccess = async (req, res, next) => {
     next(error);
   }
 };
-
-export default validateOwnerBookingAccess;

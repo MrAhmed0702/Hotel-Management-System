@@ -74,7 +74,7 @@ export const lockBookingForPayment = async (bookingId, userId, session) => {
       _id: bookingId,
       userId,
       status: "pending",
-      paymentStatus: { $in: ["none", "initiated"] },
+      paymentStatus: "none",
       expiresAt: { $gt: new Date(now.getTime() - GRACE_MS) },
     },
     { paymentStatus: "initiated" },
@@ -102,7 +102,7 @@ export const updateBooking = async (bookingId, userId, session, paymentId) => {
   ).lean();
 };
 
-export const updateFailedBooking = async (bookingId, userId, session) => {
+export const resetBookingAfterFailedPayment = async (bookingId, userId, session) => {
   const now = new Date();
 
   return Booking.findOneAndUpdate(
@@ -114,8 +114,7 @@ export const updateFailedBooking = async (bookingId, userId, session) => {
       expiresAt: { $gt: new Date(now.getTime() - GRACE_MS) },
     },
     {
-      status: "cancelled",
-      paymentStatus: "failed",
+      paymentStatus: "none",
     },
     { new: true, session },
   ).lean();
@@ -144,4 +143,16 @@ export const getBookingsByAdmin = async (query, skip, limit) => {
     bookings,
     totalBookings
   };
+};
+
+export const resetPaymentStatus = async (bookingId) => {
+  await Booking.updateOne(
+    {
+      _id: bookingId,
+      status: "pending",
+    },
+    {
+      paymentStatus: "none",
+    }
+  );
 };

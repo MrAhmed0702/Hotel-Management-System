@@ -1,18 +1,14 @@
 import {
   createPaymentService,
-  createRazorpayOrder,
+  getPaymentService,
 } from "./payment.service.js";
 import { ApiError } from "../../utils/apiError.js";
 
 export const createPayment = async (req, res) => {
-  const { id } = req.user;
-  const { bookingId } = req.params;
-
   const key = req.headers["idempotency-key"]?.toString().trim();
   if (!key) throw new ApiError(400, "Idempotency key required");
 
-  const payment = await createPaymentService(id, bookingId, key);
-  const order = await createRazorpayOrder(payment);
+  const { payment, order } = await createPaymentService(req.user.id, req.targetBooking._id, key);
 
   res.status(201).json({
     success: true,
@@ -21,5 +17,10 @@ export const createPayment = async (req, res) => {
 };
 
 export const getPayment = async (req, res) => {
-  res.status(200).json({ message: "Not implemented yet" });
+  const payment = await getPaymentService(req.targetPayment._id, req.user.id);
+
+  res.status(200).json({
+    success: true,
+    data: payment,
+  });
 };

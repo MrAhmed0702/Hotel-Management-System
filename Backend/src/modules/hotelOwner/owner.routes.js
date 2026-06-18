@@ -21,7 +21,7 @@ import { validateRoomId } from "../../middleware/validateRoomId.middleware.js";
 import { validateHotelOwnership } from "../../middleware/validateHotelOwnership.middleware.js";
 import { validateHotelId } from "../../middleware/validateHotelId.middleware.js";
 import { createRoomSchema, updateRoomSchema } from "../rooms/room.validation.js";
-import { validateOwnerBookingAccess } from "../../middleware/validateBookingAccess.middleware.js";
+import { validateOwnerBookingAccess } from "../../middleware/validateOwnerBookingAccess.middleware.js";
 import { validateBookingId } from "../../middleware/validateBookingId.middleware.js";
 import { getOwnerBookingsSchema } from "../bookings/booking.validation.js";
 

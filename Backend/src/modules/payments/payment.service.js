@@ -13,12 +13,10 @@ const GRACE_MS = 2 * 60 * 1000;
 export const createPaymentService = async (userId, bookingId, key) => {
   const session = await startSession();
 
+  let payment;
+
   try {
     session.startTransaction();
-
-    if (!Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(bookingId)) {
-      throw new ApiError(400, "Invalid IDs");
-    }
 
     const bookingObjectId = new Types.ObjectId(bookingId);
     const userObjectId = new Types.ObjectId(userId);
@@ -28,7 +26,10 @@ export const createPaymentService = async (userId, bookingId, key) => {
     const existing = await PaymentRepo.findByIdempotencyKey(key, session);
     if (existing) {
       await session.commitTransaction();
-      return existing;
+      return {
+        payment: existing,
+        order: await PaymentRepo.getExistingOrder(existing)
+      };
     }
 
     // 🔥 Lock booking
@@ -48,7 +49,7 @@ export const createPaymentService = async (userId, bookingId, key) => {
     const exists = await PaymentRepo.paymentExist(bookingObjectId, session);
     if (exists) throw new ApiError(400, "Payment already exists");
 
-    const payment = await PaymentRepo.createPayment(
+    payment = await PaymentRepo.createPayment(
       {
         bookingId: bookingObjectId,
         userId: userObjectId,
@@ -62,7 +63,6 @@ export const createPaymentService = async (userId, bookingId, key) => {
     );
 
     await session.commitTransaction();
-    return payment;
 
   } catch (err) {
     await session.abortTransaction();
@@ -70,7 +70,17 @@ export const createPaymentService = async (userId, bookingId, key) => {
   } finally {
     session.endSession();
   }
+
+  try {
+    const order = await createRazorpayOrder(payment);
+    return { payment, order };
+  } catch (err) {
+    await PaymentRepo.markOrderCreationFailed(payment._id);
+    await BookingRepo.resetPaymentStatus(payment.bookingId);
+    throw err;
+  }
 };
+
 
 //
 // 🔹 CREATE RAZORPAY ORDER
@@ -190,11 +200,7 @@ export const confirmPaymentService = async (
 //
 // 🔹 FAIL PAYMENT (WEBHOOK)
 //
-export const failPaymentService = async (
-  internalPaymentId,
-  razorpayPaymentId,
-  failureData = {}
-) => {
+export const failPaymentService = async (internalPaymentId, razorpayPaymentId, failureData = {}) => {
   const session = await startSession();
 
   try {
@@ -226,10 +232,11 @@ export const failPaymentService = async (
     const updatedPayment = await PaymentRepo.updateFailedPayment(
       payment._id,
       razorpayPaymentId,
+      failureData,
       session
     );
 
-    const updatedBooking = await BookingRepo.updateFailedBooking(
+    const updatedBooking = await BookingRepo.resetBookingAfterFailedPayment(
       payment.bookingId,
       payment.userId,
       session
@@ -248,4 +255,12 @@ export const failPaymentService = async (
   } finally {
     session.endSession();
   }
+};
+
+export const getPaymentService = async (paymentId, userId) => {
+  const payment = await PaymentRepo.findByIdAndUser(paymentId, userId);
+
+  if (!payment) throw new ApiError(404, "Payment not found");
+
+  return payment;
 };

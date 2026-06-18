@@ -9,6 +9,8 @@ export const handleWebhook = async (req, res) => {
 
     const event = payload.event;
 
+    console.log("Webhook event:", payload.event);
+
     // 🔥 Only handle relevant events
     if (!["payment.captured", "payment.failed"].includes(event)) {
       return res.status(200).end();
