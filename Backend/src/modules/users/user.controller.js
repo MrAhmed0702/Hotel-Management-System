@@ -1,5 +1,6 @@
 import { getUserById, updateUserById, softDeleteUser as softDeleteUserService, getMyBookingsService, cancelBookingService } from "./user.service.js";
 import fs from "fs";
+import logger from "../../utils/logger.js";
 
 export const getUserDetails = async (req, res) => {
     const user = await getUserById(req.user.id);
@@ -30,7 +31,7 @@ export const updateUserDetails = async (req, res, next) => {
         });
     } catch (error) {
         if (req.file?.path) {
-            await fs.promises.unlink(req.file.path).catch(err => console.error("Failed to delete uploaded file:", err));
+            await fs.promises.unlink(req.file.path).catch(err => logger.error("Failed to delete uploaded file:", { error: err.message }));
         }
         next(error);
     }

@@ -1,5 +1,6 @@
 import { registerUser, loginUser } from "./auth.service.js";
 import fs from "fs";
+import logger from "../../utils/logger.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -19,7 +20,7 @@ export const register = async (req, res, next) => {
     }
 
     if (process.env.NODE_ENV !== "production") {
-      console.log("Uploaded file:", req.file?.filename);
+      logger.info("Uploaded file:", { filename: req.file?.filename });
     }
 
     const user = await registerUser({
@@ -38,7 +39,7 @@ export const register = async (req, res, next) => {
 
   } catch (error) {
     if (req.file?.path) {
-      await fs.promises.unlink(req.file.path).catch(err => console.error("Failed to delete uploaded file:", err));
+      await fs.promises.unlink(req.file.path).catch(err => logger.error("Failed to delete uploaded file:", { error: err.message }));
     }
 
     next(error);

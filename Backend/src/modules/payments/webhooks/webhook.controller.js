@@ -2,6 +2,7 @@ import {
   confirmPaymentService,
   failPaymentService,
 } from "../payment.service.js";
+import logger from "../../../utils/logger.js";
 
 export const handleWebhook = async (req, res) => {
   try {
@@ -9,7 +10,7 @@ export const handleWebhook = async (req, res) => {
 
     const event = payload.event;
 
-    console.log("Webhook event:", payload.event);
+    logger.info("Webhook event:", { event: payload.event });
 
     // 🔥 Only handle relevant events
     if (!["payment.captured", "payment.failed"].includes(event)) {
@@ -40,9 +41,9 @@ export const handleWebhook = async (req, res) => {
     return res.status(200).json({ success: true });
 
   } catch (error) {
-    console.error("Webhook error:", error);
+    logger.error("Webhook error:", { error: error.message });
 
-    // 🔥 Always return 200 (prevent retries)
-    return res.status(200).json({ success: false });
+    // 🔥 Return 500 so Razorpay retries the webhook
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

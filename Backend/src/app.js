@@ -15,6 +15,7 @@ import paymentRoutes from "./modules/payments/payment.routes.js";
 import webhookRoutes from "./modules/payments/webhooks/webhook.routes.js";
 import { ApiError } from "./utils/apiError.js";
 import multer from "multer";
+import logger from "./utils/logger.js";
 
 const app = express();
 
@@ -75,9 +76,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   // 🔍 Logging (structured)
-  console.error({
-    timestamp: new Date().toISOString(),
-    message: err.message,
+  logger.error(err.message, {
     stack: err.stack,
     path: req.originalUrl,
     method: req.method,

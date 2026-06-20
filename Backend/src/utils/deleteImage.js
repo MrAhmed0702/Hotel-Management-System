@@ -1,4 +1,5 @@
 import fs from "fs";
+import logger from "./logger.js";
 
 export const deleteImage = async (filePaths) => {
   try {
@@ -14,9 +15,6 @@ export const deleteImage = async (filePaths) => {
     );
 
   } catch (error) {
-    console.error(
-      "File deletion failed:",
-      error.message
-    );
+    logger.error("File deletion failed:", { error: error.message });
   }
 };
