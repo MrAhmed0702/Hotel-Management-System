@@ -75,12 +75,6 @@ const hotelSchema = new Schema(
       enum: ["luxury", "budget", "business", "family"],
     },
 
-    totalRooms: {
-      type: Number,
-      required: [true, "Total rooms is required"],
-      min: [1, "Hotel must have at least 1 room"],
-      max: [10000, "Total rooms cannot exceed 10000"],
-    },
 
     averageRating: {
       type: Number,
@@ -93,19 +87,7 @@ const hotelSchema = new Schema(
         }
 
         return val;
-      } 
-    },
-
-    owner: {
-      type: Types.ObjectId,
-      ref: "User",
-      required: true
-    },
-
-    approvedBy: {
-      type: Types.ObjectId,
-      ref: "User",
-      default: null
+      }
     },
 
     status: {
@@ -120,6 +102,25 @@ const hotelSchema = new Schema(
       default: "pending"
     },
 
+    statusReason: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: null
+    },
+
+    owner: {
+      type: Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+
+    approvedBy: {
+      type: Types.ObjectId,
+      ref: "User",
+      default: null
+    },
+
     isDeleted: {
       type: Boolean,
       default: false
@@ -132,8 +133,8 @@ const hotelSchema = new Schema(
   },
   {
     timestamps: true,
-
     toJSON: {
+      virtuals: true,
       transform: (doc, ret) => {
         ret.id = ret._id;
 
@@ -144,6 +145,9 @@ const hotelSchema = new Schema(
 
         return ret;
       },
+    },
+    toObject: {
+      virtuals: true,
     },
   },
 );

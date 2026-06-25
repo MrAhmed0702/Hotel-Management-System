@@ -19,7 +19,7 @@ export const getAllUsers = async ({ query, skip, limit, sortBy }) => {
     ]);
 
     return {
-        users,
+        users: users.map(u => ({ ...u, id: u._id.toString() })),
         totalUsers
     };
 };
@@ -48,7 +48,7 @@ export const getDeletedUsers = async ({
     ]);
 
     return {
-        users,
+        users: users.map(u => ({ ...u, id: u._id.toString() })),
         totalUsers
     };
 };
@@ -79,9 +79,19 @@ export const countHotelsByOwner = async (ownerId) => {
     return await Hotel.countDocuments({ owner: ownerId, isDeleted: false });
 }
 
-export const getHotelsByStatus = async (status = "pending") => {
-    return await Hotel.find({ status })
-        .populate("owner", "firstName lastName email phoneNumber")
-        .sort({ createdAt: -1 })
-        .lean();
+export const getHotelsByStatus = async ({ query, skip, limit }) => {
+    const [hotels, totalHotels] = await Promise.all([
+        Hotel.find(query)
+            .populate("owner", "firstName lastName email phoneNumber")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Hotel.countDocuments(query)
+    ]);
+
+    return {
+        hotels,
+        totalHotels
+    };
 }

@@ -78,7 +78,7 @@ export const lockBookingForPayment = async (bookingId, userId, session) => {
       expiresAt: { $gt: new Date(now.getTime() - GRACE_MS) },
     },
     { paymentStatus: "initiated" },
-    { new: true, session },
+    { returnDocument: "after", session },
   ).lean();
 };
 
@@ -98,7 +98,7 @@ export const updateBooking = async (bookingId, userId, session, paymentId) => {
       paymentStatus: "paid",
       paymentId,
     },
-    { new: true, session },
+    { returnDocument: "after", session },
   ).lean();
 };
 
@@ -116,7 +116,7 @@ export const resetBookingAfterFailedPayment = async (bookingId, userId, session)
     {
       paymentStatus: "none",
     },
-    { new: true, session },
+    { returnDocument: "after", session },
   ).lean();
 };
 
@@ -140,7 +140,7 @@ export const getBookingsByAdmin = async (query, skip, limit) => {
   ]);
 
   return {
-    bookings,
+    bookings: bookings.map(b => ({ ...b, id: b._id.toString() })),
     totalBookings
   };
 };
@@ -156,3 +156,11 @@ export const resetPaymentStatus = async (bookingId) => {
     }
   );
 };
+
+export const getBookingById = async (userId, bookingId, session) => {
+  return Booking.findOne({
+    _id: bookingId,
+    userId,
+    isDeleted: false
+  }).session(session).lean();
+}

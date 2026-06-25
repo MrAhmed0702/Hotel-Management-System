@@ -27,6 +27,10 @@ export const findBookingsByUser = async (userId, page, limit) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .populate({
+        path: "hotelId",
+        select: "hotelName images address"
+      })
       .lean(),
   ]);
 

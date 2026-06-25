@@ -70,14 +70,14 @@ const userSchema = new Schema(
       default: false,
     },
 
-    isDeleted: { 
+    isDeleted: {
       type: Boolean,
-      default: false 
+      default: false
     },
 
-    deletedAt: { 
-      type: Date, 
-      default: null 
+    deletedAt: {
+      type: Date,
+      default: null
     },
   },
   {
@@ -99,17 +99,11 @@ const userSchema = new Schema(
   },
 );
 
-userSchema.pre("save", async function (next) {
-  try {
-    if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
 
-    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
-    this.password = await bcrypt.hash(this.password, saltRounds);
-
-    next();
-  } catch (err) {
-    next(err);
-  }
+  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+  this.password = await bcrypt.hash(this.password, saltRounds);
 });
 
 userSchema.methods.comparePassword = async function (password) {

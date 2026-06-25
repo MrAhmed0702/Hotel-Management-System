@@ -35,6 +35,7 @@ export const getAllUsersService = async ({ page, limit, search, sortBy }) => {
     return {
         users,
         totalUsers,
+        totalItems: totalUsers,
         page,
         limit,
         totalPages,
@@ -162,7 +163,7 @@ export const deleteUserService = async (currentAdmin, targetUser) => {
     if (targetUser.role === "user") {
         const activeBooking = await bookingRepo.checkActiveBooking(targetUser._id);
 
-        if(activeBooking) {
+        if (activeBooking) {
             throw new ApiError(400, "Cannot delete user who has active bookings");
         }
     }
@@ -191,11 +192,38 @@ export const restoreUserService = async (targetUser) => {
     return targetUser;
 }
 
-export const getHotelsByStatusService = async (status = "pending") => {
-    return await adminRepo.getHotelsByStatus(status);
+export const getHotelsByStatusService = async ({ status, page, limit }) => {
+    const pageNumber = Math.max(1, Number(page || 1));
+    const limitNumber = Math.min(100, Math.max(1, Number(limit || 10)));
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const query = {};
+    if (status) {
+        query.status = status;
+    }
+
+    const { hotels, totalHotels } = await adminRepo.getHotelsByStatus({
+        query,
+        skip,
+        limit: limitNumber
+    });
+
+    const totalPages = Math.max(1, Math.ceil(totalHotels / limitNumber));
+
+    return {
+        hotels,
+        totalHotels,
+        totalItems: totalHotels,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPrevPage: pageNumber > 1,
+        hasData: totalHotels > 0
+    };
 }
 
-export const updateHotelStatusService = async (adminId, hotel, status) => {
+export const updateHotelStatusService = async (adminId, hotel, status, reason) => {
     if (hotel.isDeleted) {
         throw new ApiError(400, "Deleted hotel cannot be activated");
     }
@@ -221,11 +249,25 @@ export const updateHotelStatusService = async (adminId, hotel, status) => {
     switch (status) {
         case "active":
             hotel.approvedBy = adminId;
+            hotel.statusReason = null;
+            break;
+
+        case "rejected":
+            hotel.approvedBy = null;
+            hotel.statusReason = reason;
+            break;
+
+        case "suspended":
+            hotel.statusReason = reason;
             break;
 
         case "pending":
-        case "rejected":
             hotel.approvedBy = null;
+            hotel.statusReason = null;
+            break;
+
+        case "inactive":
+            hotel.statusReason = null;
             break;
     }
 
@@ -234,37 +276,38 @@ export const updateHotelStatusService = async (adminId, hotel, status) => {
     return hotel;
 }
 
-export const getAllBookingsService = async ( queryData ) => {
-  const { page, limit, status, paymentStatus } = queryData;
+export const getAllBookingsService = async (queryData) => {
+    const { page, limit, status, paymentStatus } = queryData;
 
-  const pageNumber = Math.max(1, Number(page));
+    const pageNumber = Math.max(1, Number(page));
 
-  const limitNumber = Math.min(100, Math.max(1, Number(limit)));
+    const limitNumber = Math.min(100, Math.max(1, Number(limit)));
 
-  const skip = (pageNumber - 1) * limitNumber;
+    const skip = (pageNumber - 1) * limitNumber;
 
-  const query = {};
+    const query = {};
 
-  if (status) {
-    query.status = status;
-  }
+    if (status) {
+        query.status = status;
+    }
 
-  if (paymentStatus) {
-    query.paymentStatus = paymentStatus;
-  }
+    if (paymentStatus) {
+        query.paymentStatus = paymentStatus;
+    }
 
-  const { bookings, totalBookings } = await bookingRepo.getBookingsByAdmin(query, skip, limitNumber);
+    const { bookings, totalBookings } = await bookingRepo.getBookingsByAdmin(query, skip, limitNumber);
 
-  const totalPages = Math.max(1, Math.ceil(totalBookings / limitNumber));
+    const totalPages = Math.max(1, Math.ceil(totalBookings / limitNumber));
 
-  return {
-    bookings,
-    totalBookings,
-    page: pageNumber,
-    limit: limitNumber,
-    totalPages,
-    hasNextPage: pageNumber < totalPages,
-    hasPrevPage: pageNumber > 1,
-    hasData: totalBookings > 0
-  };
+    return {
+        bookings,
+        totalBookings,
+        totalItems: totalBookings,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPrevPage: pageNumber > 1,
+        hasData: totalBookings > 0
+    };
 };

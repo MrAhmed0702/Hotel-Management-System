@@ -19,7 +19,7 @@ export const validateBookingId = async (
 
     const booking =
       await Booking.findOne({ _id: bookingId, isDeleted: false })
-        .populate("hotelId", "owner hotelName")
+        .populate("hotelId", "owner hotelName address images")
         .populate("userId", "firstName lastName email");
 
     if (!booking) {

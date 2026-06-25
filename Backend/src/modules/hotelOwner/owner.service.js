@@ -151,8 +151,7 @@ export const updateHotelService = async (
         "description",
         "address",
         "amenities",
-        "category",
-        "totalRooms"
+        "category"
     ];
 
     const filteredData = Object.fromEntries(
@@ -240,7 +239,7 @@ export const createRoomService = async (hotel, roomData) => {
     }
 };
 
-export const updateRoomService = async (room, roomUpdatedData) => {
+export const updateRoomService = async (room, roomUpdatedData, imagesToDelete = [], newImages = []) => {
 
     if (!room) {
         throw new ApiError(404, "Room not found");
@@ -252,13 +251,30 @@ export const updateRoomService = async (room, roomUpdatedData) => {
         Object.entries(roomUpdatedData).filter(([key]) => allowedUpdates.includes(key))
     );
 
-    if (Object.keys(filteredData).length === 0) {
-        throw new ApiError(400, `No valid fields provided for update`);
-    }
+    const currentImages = room.images || [];
+    const updatedImages = currentImages
+        .filter(img => !imagesToDelete.includes(img))
+        .concat(newImages);
+
+    filteredData.images = updatedImages;
 
     Object.assign(room, filteredData);
 
     await room.save();
+
+    const deletedFilePaths = imagesToDelete.map(
+        imageUrl => {
+            const fileName = path.basename(imageUrl);
+            return path.join(
+                process.cwd(),
+                "uploads",
+                "hotels",
+                fileName
+            );
+        }
+    );
+
+    await deleteImage(deletedFilePaths);
 
     return room;
 };

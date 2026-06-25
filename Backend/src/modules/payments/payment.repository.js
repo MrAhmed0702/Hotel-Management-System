@@ -24,7 +24,7 @@ export const findByIdempotencyKey = async (key, session) => {
 // 🔹 Create payment
 export const createPayment = async (data, session) => {
   const [payment] = await Payment.create([data], { session });
-  return payment.toJSON();
+  return payment;
 };
 
 // 🔹 Find latest payment for booking
@@ -65,7 +65,7 @@ export const updatePayment = async (paymentId, razorpayPaymentId, session) => {
       razorpayPaymentId,
     },
     {
-      new: true,
+      returnDocument: "after",
       session,
       runValidators: true,
     }
@@ -86,7 +86,7 @@ export const updateFailedPayment = async (paymentId, razorpayPaymentId, failureD
       gatewayResponse: failureData?.metadata
     },
     {
-      new: true,
+      returnDocument: "after",
       session,
       runValidators: true,
     }

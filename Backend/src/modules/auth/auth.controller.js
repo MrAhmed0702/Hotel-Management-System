@@ -9,7 +9,7 @@ export const register = async (req, res, next) => {
 
     if (req.file && req.file.filename) {
       const baseUrl = `${req.protocol}://${req.get("host")}`;
-      profilePicture = `${baseUrl}/uploads/${req.file.filename}`;
+      profilePicture = `${baseUrl}/uploads/profiles/${req.file.filename}`;
       profilePictureType = "uploaded";
     } else {
       const { firstName, lastName } = req.validatedData;

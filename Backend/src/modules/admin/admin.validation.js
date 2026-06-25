@@ -9,28 +9,28 @@ export const getUsersSchema = Joi.object({
 }).unknown(false);
 
 export const updateUserSchema = Joi.object({
-    firstName: Joi.string().trim().min(2).max(50),
+  firstName: Joi.string().trim().min(2).max(50),
 
-    lastName: Joi.string().trim().min(2).max(50),
+  lastName: Joi.string().trim().min(2).max(50),
 
-    email: Joi.string().email().lowercase(),
+  email: Joi.string().email().lowercase(),
 
-    phoneNumber: Joi.string().trim().pattern(/^[0-9]{10}$/),
+  phoneNumber: Joi.string().trim().pattern(/^[0-9]{10}$/),
 
-    password: Joi.string().min(6).max(100),
+  password: Joi.string().min(6).max(100),
 
-    gender: Joi.string().valid("male", "female"),
+  gender: Joi.string().valid("male", "female"),
 
-    dateOfBirth: Joi.date().less("now"),
+  dateOfBirth: Joi.date().less("now"),
 
-    isVerified: Joi.boolean()
+  isVerified: Joi.boolean()
 
 }).min(1).unknown(false);
 
 export const updateRoleSchema = Joi.object({
-    role: Joi.string()
-        .valid("user", "owner", "admin")
-        .required()
+  role: Joi.string()
+    .valid("user", "owner", "admin")
+    .required()
 }).unknown(false);
 
 export const hotelStatusSchema = Joi.object({
@@ -41,18 +41,26 @@ export const hotelStatusSchema = Joi.object({
       "rejected",
       "suspended",
       "inactive"
-    ).optional()
+    ).optional(),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
 }).unknown(false);
 
 export const updateHotelStatusSchema = Joi.object({
-    status: Joi.string()
+  status: Joi.string()
     .valid(
       "pending",
       "active",
       "rejected",
       "suspended",
       "inactive"
-    ).required()
+    )
+    .required(),
+
+  reason: Joi.string()
+    .trim()
+    .max(500)
+    .allow("")
 }).unknown(false);
 
 export const getAdminBookingsSchema = Joi.object({

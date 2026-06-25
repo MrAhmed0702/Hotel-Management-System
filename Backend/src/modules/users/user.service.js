@@ -68,8 +68,9 @@ export const updateUserById = async (id, updateData) => {
     oldProfilePicture?.includes("/uploads/")
   ) {
     const oldFileName = path.basename(oldProfilePicture);
-
-    const oldFilePath = path.join(process.cwd(), "uploads", oldFileName);
+    const oldFilePath = oldProfilePicture.includes("/uploads/profiles/")
+      ? path.join(process.cwd(), "uploads", "profiles", oldFileName)
+      : path.join(process.cwd(), "uploads", oldFileName);
 
     await deleteImage(oldFilePath);
   }

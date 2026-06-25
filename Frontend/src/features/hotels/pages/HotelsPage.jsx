@@ -1,11 +1,13 @@
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { hotelApi } from "../api/hotelApi";
 import FullScreenLoader from "../../../components/ui/FullScreenLoader";
 import FiltersSidebar from "../components/FiltersSidebar";
 import { keepPreviousData } from "@tanstack/react-query";
+import { ROUTES } from "../../../constants/routes";
 
 const HotelsPage = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = Object.fromEntries([...searchParams]);
@@ -75,7 +77,11 @@ const HotelsPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {hotels.map((hotel) => (
-            <div key={hotel._id} className="bg-white shadow rounded-xl">
+            <div 
+              key={hotel._id} 
+              className="bg-white shadow rounded-xl cursor-pointer"
+              onClick={() => navigate(ROUTES.HOTEL_DETAILS(hotel._id))}
+            >
               <img
                 src={hotel.images?.[0]}
                 alt={hotel.hotelName ? `${hotel.hotelName} hotel image` : "Hotel image"}

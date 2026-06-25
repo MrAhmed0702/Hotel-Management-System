@@ -109,9 +109,9 @@ export const restoreUser = async (req, res) => {
 }
 
 export const getHotelsByStatus = async (req, res) => {
-    const { status } = req.validatedData;
+    const { status, page, limit } = req.validatedData;
 
-    const hotels = await getHotelsByStatusService(status);
+    const hotels = await getHotelsByStatusService({ status, page, limit });
 
     res.status(200).json({
         success: true,
@@ -129,7 +129,9 @@ export const getHotelDetails = async (req, res) => {
 }
 
 export const updateHotelStatus = async (req, res) => {
-    const updatedHotelStatus = await updateHotelStatusService(req.user.id, req.targetHotel, req.validatedData.status);
+    const {status, reason} = req.validatedData;
+    
+    const updatedHotelStatus = await updateHotelStatusService(req.user.id, req.targetHotel, status, reason);
 
     res.status(200).json({
         success: true,

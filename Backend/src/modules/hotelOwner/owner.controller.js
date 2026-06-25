@@ -71,7 +71,7 @@ export const updateHotel = async (req, res, next) => {
         let deletedImages = [];
 
         try {
-            deletedImages = JSON.parse(req.body.deletedImages || "[]");
+            deletedImages = JSON.parse(req.body.imagesToDelete || "[]");
         } catch {
             deletedImages = [];
         }
@@ -111,13 +111,17 @@ export const deleteHotel = async (req, res, next) => {
 export const createRoom = async (req, res, next) => {
     try {
         const roomData = req.validatedData;
-        const result = await createRoomService(req.targetHotel, roomData);
+        const baseURL = `${req.protocol}://${req.get("host")}`;
+        const images = req.files?.map(file => `${baseURL}/uploads/hotels/${file.filename}`) || [];
+
+        const result = await createRoomService(req.targetHotel, { ...roomData, images });
         res.status(201).json({
             success: true,
             message: "Room created successfully",
             data: result
         });
     } catch (error) {
+        await deleteImage(req.files?.map(file => file.path));
         next(error);
     }
 }
@@ -126,14 +130,25 @@ export const createRoom = async (req, res, next) => {
 export const updateRoom = async (req, res, next) => {
     try {
         const roomData = req.validatedData;
+        const baseURL = `${req.protocol}://${req.get("host")}`;
 
-        const result = await updateRoomService(req.targetRoom, roomData);
+        let deletedImages = [];
+        try {
+            deletedImages = JSON.parse(req.body.imagesToDelete || "[]");
+        } catch {
+            deletedImages = [];
+        }
+
+        const newImages = req.files?.map(file => `${baseURL}/uploads/hotels/${file.filename}`) || [];
+
+        const result = await updateRoomService(req.targetRoom, roomData, deletedImages, newImages);
         res.status(200).json({
             success: true,
             message: "Room updated successfully",
             data: result
         });
     } catch (error) {
+        await deleteImage(req.files?.map(file => file.path));
         next(error);
     }
 }

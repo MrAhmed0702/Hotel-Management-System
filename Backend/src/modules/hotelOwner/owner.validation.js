@@ -68,12 +68,6 @@ export const hotelCreationSchema = Joi.object({
             "family"
         )
         .required(),
-
-    totalRooms: Joi.number()
-        .integer()
-        .min(1)
-        .max(10000)
-        .required(),
 })
     .required()
     .unknown(false);
@@ -137,10 +131,6 @@ export const hotelUpdateSchema = Joi.object({
             "family"
         ),
 
-    totalRooms: Joi.number()
-        .integer()
-        .min(1)
-        .max(10000),
 })
     .min(1)
     .unknown(false);

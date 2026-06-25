@@ -18,8 +18,8 @@ export const updateUserDetails = async (req, res, next) => {
 
         if (req.file?.filename) {
             const baseURL = `${req.protocol}://${req.get("host")}`;
-            updateData.profilePicture = `${baseURL}/uploads/${req.file.filename}`;
-            updateData.profilePictureType = "uploaded";
+            updateData.profilePicture = `${baseURL}/uploads/profiles/${req.file.filename}`;
+            updateData.profilePictureType = "uploaded"; 
         }
 
         const updatedUser = await updateUserById(req.user.id, updateData);

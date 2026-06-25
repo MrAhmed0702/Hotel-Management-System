@@ -15,5 +15,15 @@ export const authApi = {
     getMe: async () => {
         const res = await apiClient.get(ENDPOINTS.USER.GET_USER);
         return res.data;
+    },
+
+    updateUser: async (data) => {
+        const res = await apiClient.patch(ENDPOINTS.USER.UPDATE_USER, data);
+        return res.data;
+    },
+
+    deleteUser: async () => {
+        const res = await apiClient.delete(ENDPOINTS.USER.DELETE_USER);
+        return res.data;
     }
 }

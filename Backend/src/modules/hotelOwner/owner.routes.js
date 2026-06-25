@@ -27,6 +27,32 @@ import { getOwnerBookingsSchema } from "../bookings/booking.validation.js";
 
 const router = express.Router();
 
+// Middleware to parse JSON-stringified multipart fields (address, amenities)
+const parseHotelFormData = (req, res, next) => {
+    try {
+        if (req.body.address && typeof req.body.address === 'string') {
+            req.body.address = JSON.parse(req.body.address);
+        }
+        if (req.body.amenities && typeof req.body.amenities === 'string') {
+            req.body.amenities = JSON.parse(req.body.amenities);
+        }
+    } catch (e) {
+        // Leave as-is; let Joi report the validation error
+    }
+    next();
+};
+
+const parseRoomFormData = (req, res, next) => {
+    try {
+        if (req.body.amenities && typeof req.body.amenities === 'string') {
+            req.body.amenities = JSON.parse(req.body.amenities);
+        }
+    } catch (e) {
+        // Leave as-is; let Joi report the validation error
+    }
+    next();
+};
+
 router.use(verifyToken);
 router.use(authorize("owner"));
 
@@ -37,6 +63,7 @@ router.post(
     "/hotels",
     upload.array("images", 10),
     validateFileContent,
+    parseHotelFormData,
     validate(hotelCreationSchema),
     createHotel
 );
@@ -50,6 +77,7 @@ router.patch(
     validateHotelOwnership,
     upload.array("images", 10),
     validateFileContent,
+    parseHotelFormData,
     validate(hotelUpdateSchema),
     updateHotel
 );
@@ -66,6 +94,9 @@ router.post(
     "/hotels/:hotelId/rooms",
     validateHotelId,
     validateHotelOwnership,
+    upload.array("images", 10),
+    validateFileContent,
+    parseRoomFormData,
     validate(createRoomSchema),
     createRoom
 );
@@ -74,6 +105,9 @@ router.patch(
     validateHotelId,
     validateHotelOwnership,
     validateRoomId,
+    upload.array("images", 10),
+    validateFileContent,
+    parseRoomFormData,
     validate(updateRoomSchema),
     updateRoom
 );

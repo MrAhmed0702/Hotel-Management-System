@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .env
+eslint-report.txt
 
 # Editor directories and files
 .vscode/*

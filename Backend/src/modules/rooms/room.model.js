@@ -28,7 +28,6 @@ const roomSchema = new Schema(
     description: {
       type: String,
       trim: true,
-      minlength: 20,
       maxlength: 450,
       default: "",
     },
@@ -63,8 +62,9 @@ const roomSchema = new Schema(
           type: String,
           trim: true,
           validate: {
-            validator: validator.isURL,
-            message: "Invalid image URL",
+            validator: (value) =>
+              value.startsWith("http://") || value.startsWith("https://"),
+              message: "Invalid image URL",
           },
         },
       ],

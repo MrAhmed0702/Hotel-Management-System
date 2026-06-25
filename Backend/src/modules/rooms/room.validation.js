@@ -13,6 +13,19 @@ const amenitiesSchema = Joi.array()
   .max(50)
   .default([]);
 
+const descriptionSchema = Joi.string()
+  .trim()
+  .max(450)
+  .custom((value, helpers) => {
+    if (!value) return value;
+    const words = value.trim().split(/\s+/).filter(Boolean).length;
+    if (words < 10) {
+      return helpers.message("Description must have at least 10 words");
+    }
+    return value;
+  })
+  .allow("", null);
+
 export const createRoomSchema = Joi.object({
   roomNumber: Joi.string()
     .trim()
@@ -27,11 +40,7 @@ export const createRoomSchema = Joi.object({
     .valid(...ROOM_TYPES)
     .required(),
 
-  description: Joi.string()
-    .trim()
-    .min(20)
-    .max(450)
-    .allow(""),
+  description: descriptionSchema,
 
   price: Joi.number()
     .positive()
@@ -63,11 +72,7 @@ export const updateRoomSchema = Joi.object({
     .lowercase()
     .valid(...ROOM_TYPES),
 
-  description: Joi.string()
-    .trim()
-    .min(20)
-    .max(450)
-    .allow(""),
+  description: descriptionSchema,
 
   price: Joi.number()
     .positive()

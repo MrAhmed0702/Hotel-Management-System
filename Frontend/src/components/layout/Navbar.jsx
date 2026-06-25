@@ -11,11 +11,13 @@ const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [search, setSearch] = useState("");
   const inputRef = useRef(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [userData, setUserData] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const activeUser = userData || user;
 
   const toggleDropdown = () => {
     setIsOpen((prev) => !prev);
@@ -108,43 +110,46 @@ const Navbar = () => {
 
         {/* User */}
         {isAuthenticated ? (
-          <div className="flex items-center gap-2">
-            {/* USER TEXT */}
-            <div className="text-right leading-tight">
-              <p className="text-sm font-medium">
-                {userData?.firstName} {userData?.lastName}
-              </p>
-              <p className="text-xs text-gray-500">
-                {userData?.role?.toUpperCase()}
-              </p>
-            </div>
+          <div className="flex items-center gap-2 relative" ref={dropdownRef}>
+            {/* TRIGGER CONTAINER */}
+            <div 
+              className="flex items-center gap-3 cursor-pointer select-none" 
+              onClick={toggleDropdown}
+            >
+              {/* USER TEXT */}
+              <div className="text-right leading-tight">
+                <p className="text-sm font-medium">
+                  {activeUser?.firstName} {activeUser?.lastName}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {activeUser?.role?.toUpperCase()}
+                </p>
+              </div>
 
-            {/* DROPDOWN WRAPPER */}
-            <div className="relative" ref={dropdownRef}>
-              {/* AVATAR (TRIGGER) */}
+              {/* AVATAR */}
               <img
-                src={userData?.profilePicture }
+                src={activeUser?.profilePicture || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent((activeUser?.firstName || "") + " " + (activeUser?.lastName || ""))}`}
                 alt="Profile"
-                className="w-9 h-9 rounded-full object-cover cursor-pointer border"
-                onClick={toggleDropdown}
+                className="w-9 h-9 rounded-full object-cover border"
               />
+            </div>
 
               {/* DROPDOWN */}
               {isOpen && (
-                <div className="absolute right-0 mt-2 w-55 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden z-50">
+                <div className="absolute right-5 mt-42 w-56 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden z-50">
                   {/* USER HEADER */}
                   <div className="px-4 py-3 border-b bg-gray-50">
                     <p className="text-sm font-medium">
-                      {userData?.firstName} {userData?.lastName}
+                      {activeUser?.firstName} {activeUser?.lastName}
                     </p>
-                    <p className="text-xs text-gray-500">{userData?.email}</p>
+                    <p className="text-xs text-gray-500">{activeUser?.email}</p>
                   </div>
 
                   {/* OPTIONS */}
                   <button
                     onClick={() => {
                       setIsOpen(false);
-                      // navigate("/profile")
+                      navigate("/dashboard/profile");
                     }}
                     className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition"
                   >
@@ -164,7 +169,7 @@ const Navbar = () => {
                 </div>
               )}
             </div>
-          </div>
+          
         ) : (
           <div className="flex items-center justify-center gap-2">
             <NavLink
