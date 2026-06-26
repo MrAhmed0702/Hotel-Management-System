@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useHotelRooms } from '../api/useHotelQuery';
-import { useOwnerHotelById, useCreateRoom, useUpdateRoom, useDeleteRoom } from '../api/useOwnerHotelQuery';
+import { useHotelRooms } from '../../hotels/api/useHotelQuery';
+import { useOwnerHotelById } from '../../owner/api/useOwnerHotelQuery';
+import { useCreateRoom, useUpdateRoom, useDeleteRoom } from '../api/useOwnerRoomQuery';
 import FullScreenLoader from '../../../components/ui/FullScreenLoader';
 import Modal from '../../../components/ui/Modal';
 import FormInput from '../../../components/ui/FormInput';
 import { useForm } from 'react-hook-form';
 import { ChevronLeft, Plus, Edit, Trash2, Users, Upload, X } from 'lucide-react';
 import { ROUTES } from '../../../constants/routes';
+import { STATUS } from '../../../constants/status';
 
 export default function OwnerRoomsPage() {
     const { hotelId } = useParams();
@@ -39,7 +41,7 @@ export default function OwnerRoomsPage() {
             price: '',
             capacity: '',
             amenities: '',
-            operationalStatus: 'available'
+            operationalStatus: STATUS.ROOM.AVAILABLE
         }
     });
 
@@ -70,7 +72,7 @@ export default function OwnerRoomsPage() {
             price: '',
             capacity: '',
             amenities: '',
-            operationalStatus: 'available'
+            operationalStatus: STATUS.ROOM.AVAILABLE
         });
         setIsFormModalOpen(true);
     };
@@ -173,9 +175,9 @@ export default function OwnerRoomsPage() {
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case 'available': return <span className="text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-bold uppercase">Available</span>;
-            case 'maintenance': return <span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded text-xs font-bold uppercase">Maintenance</span>;
-            case 'inactive': return <span className="text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-bold uppercase">Inactive</span>;
+            case STATUS.ROOM.AVAILABLE: return <span className="text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-bold uppercase">Available</span>;
+            case STATUS.ROOM.MAINTENANCE: return <span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded text-xs font-bold uppercase">Maintenance</span>;
+            case STATUS.ROOM.INACTIVE: return <span className="text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-bold uppercase">Inactive</span>;
             default: return <span>{status}</span>;
         }
     };
@@ -417,9 +419,9 @@ export default function OwnerRoomsPage() {
                                 {...register('operationalStatus')}
                                 className="w-full px-4 py-2.5 rounded-lg border border-[#E5E5E5] bg-white text-[#1A2B44] focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]"
                             >
-                                <option value="available">Available</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="inactive">Inactive</option>
+                                <option value={STATUS.ROOM.AVAILABLE}>Available</option>
+                                <option value={STATUS.ROOM.MAINTENANCE}>Maintenance</option>
+                                <option value={STATUS.ROOM.INACTIVE}>Inactive</option>
                             </select>
                         </div>
                     )}

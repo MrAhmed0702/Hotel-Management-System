@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useHotelRooms } from '../api/useHotelQuery';
+import { useHotelRooms } from '../../hotels/api/useHotelQuery';
 import { Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';

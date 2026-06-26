@@ -5,6 +5,7 @@ import Pagination from '../../../components/ui/Pagination';
 import Modal from '../../../components/ui/Modal';
 import { format } from 'date-fns';
 import { Shield, User, Trash2, RefreshCw, Filter } from 'lucide-react';
+import { ROLES } from '../../../constants/roles';
 
 export default function AdminUsersPage() {
     const [page, setPage] = useState(1);
@@ -20,7 +21,7 @@ export default function AdminUsersPage() {
 
     const [roleModalOpen, setRoleModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [selectedRole, setSelectedRole] = useState('user');
+    const [selectedRole, setSelectedRole] = useState(ROLES.USER);
 
     const isLoading = viewMode === 'active' ? isActiveLoading : isDeletedLoading;
     const data = viewMode === 'active' ? activeData : deletedData;
@@ -56,8 +57,8 @@ export default function AdminUsersPage() {
 
     const getRoleBadge = (role) => {
         switch (role) {
-            case 'admin': return <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold uppercase flex items-center w-max"><Shield className="w-3 h-3 mr-1" /> Admin</span>;
-            case 'owner': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold uppercase flex items-center w-max"><BuildingIcon className="w-3 h-3 mr-1" /> Owner</span>;
+            case ROLES.ADMIN: return <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold uppercase flex items-center w-max"><Shield className="w-3 h-3 mr-1" /> Admin</span>;
+            case ROLES.OWNER: return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold uppercase flex items-center w-max"><BuildingIcon className="w-3 h-3 mr-1" /> Owner</span>;
             default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase flex items-center w-max"><User className="w-3 h-3 mr-1" /> User</span>;
         }
     };
@@ -204,9 +205,9 @@ export default function AdminUsersPage() {
                         onChange={(e) => setSelectedRole(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-lg border border-[#E5E5E5] bg-white text-[#1A2B44] focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]"
                     >
-                        <option value="user">User</option>
-                        <option value="owner">Owner</option>
-                        <option value="admin">Admin</option>
+                        <option value={ROLES.USER}>User</option>
+                        <option value={ROLES.OWNER}>Owner</option>
+                        <option value={ROLES.ADMIN}>Admin</option>
                     </select>
                 </div>
             </Modal>

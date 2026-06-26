@@ -10,7 +10,7 @@ import ProtectedRoute from "../components/common/ProtectedRoute";
 import NotFound from "../components/common/NotFound";
 
 import DashboardLayout from "../layouts/DashboardLayout";
-import ProfilePage from "../features/auth/pages/ProfilePage";
+import ProfilePage from "../features/user/pages/ProfilePage";
 import { ROUTES } from "../constants/routes";
 import { Navigate } from "react-router-dom";
 
@@ -22,10 +22,10 @@ const LoginPage = lazy(() => import("../features/auth/pages/LoginPage"));
 const RegistrationPage = lazy(() => import("../features/auth/pages/RegistrationPage"));
 const UserBookingsPage = lazy(() => import("../features/bookings/pages/UserBookingsPage"));
 const UserBookingDetailsPage = lazy(() => import("../features/bookings/pages/UserBookingDetailsPage"));
-const OwnerHotelsPage = lazy(() => import("../features/hotels/pages/OwnerHotelsPage"));
-const OwnerHotelFormPage = lazy(() => import("../features/hotels/pages/OwnerHotelFormPage"));
-const OwnerRoomsPage = lazy(() => import("../features/hotels/pages/OwnerRoomsPage"));
-const OwnerBookingsPage = lazy(() => import("../features/bookings/pages/OwnerBookingsPage"));
+const OwnerHotelsPage = lazy(() => import("../features/owner/pages/OwnerHotelsPage"));
+const OwnerHotelFormPage = lazy(() => import("../features/owner/pages/OwnerHotelFormPage"));
+const OwnerRoomsPage = lazy(() => import("../features/room/pages/OwnerRoomsPage"));
+const OwnerBookingsPage = lazy(() => import("../features/owner/pages/OwnerBookingsPage"));
 
 const AdminAnalyticsPage = lazy(() => import("../features/admin/pages/AdminAnalyticsPage"));
 const AdminUsersPage = lazy(() => import("../features/admin/pages/AdminUsersPage"));

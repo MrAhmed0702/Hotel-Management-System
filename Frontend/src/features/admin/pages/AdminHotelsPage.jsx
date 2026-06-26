@@ -1,14 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminHotels, useUpdateHotelStatus } from '../api/useAdminQuery';
 import FullScreenLoader from '../../../components/ui/FullScreenLoader';
 import Pagination from '../../../components/ui/Pagination';
 import Modal from '../../../components/ui/Modal';
 import { ShieldAlert, CheckCircle, XCircle, MapPin, Eye } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setHotels, updateHotelStatus } from '../adminSlice';
+import { STATUS } from '../../../constants/status';
+import { ROUTES } from '../../../constants/routes';
 
 export default function AdminHotelsPage() {
     const [page, setPage] = useState(1);
     const limit = 10;
 
+    const dispatch = useDispatch();
     const { data, isLoading, error } = useAdminHotels({ page, limit });
     const updateStatusMutation = useUpdateHotelStatus();
 
@@ -16,10 +21,17 @@ export default function AdminHotelsPage() {
     const [selectedHotel, setSelectedHotel] = useState(null);
     const [statusPayload, setStatusPayload] = useState({ status: '', reason: '' });
 
+    const hotels = useSelector((state) => state.admin.hotels) || [];
+    const totalPages = data?.totalPages || 1;
+
+    useEffect(() => {
+        if (data?.hotels) {
+            dispatch(setHotels(data.hotels));
+        }
+    }, [data, dispatch]);
+
     if (isLoading) return <FullScreenLoader />;
     if (error) return <div className="text-center text-red-500 py-10">Failed to load hotels.</div>;
-
-    const { hotels = [], totalPages = 1 } = data || {};
 
     const openStatusModal = (hotel, newStatus) => {
         setSelectedHotel(hotel);
@@ -34,6 +46,8 @@ export default function AdminHotelsPage() {
                 status: statusPayload.status,
                 reason: statusPayload.reason
             });
+            // Update immediately in Redux store
+            dispatch(updateHotelStatus({ id: selectedHotel._id, status: statusPayload.status }));
             setStatusModalOpen(false);
         } catch (error) {
             console.error(error);
@@ -42,11 +56,11 @@ export default function AdminHotelsPage() {
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case 'active': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold uppercase">Active</span>;
-            case 'pending': return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold uppercase">Pending</span>;
-            case 'suspended': return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold uppercase">Suspended</span>;
-            case 'rejected': return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">Rejected</span>;
-            case 'inactive': return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">Inactive</span>;
+            case STATUS.HOTEL.ACTIVE: return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold uppercase">Active</span>;
+            case STATUS.HOTEL.PENDING: return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold uppercase">Pending</span>;
+            case STATUS.HOTEL.SUSPENDED: return <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold uppercase">Suspended</span>;
+            case STATUS.HOTEL.REJECTED: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">Rejected</span>;
+            case STATUS.HOTEL.INACTIVE: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">Inactive</span>;
             default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">{status}</span>;
         }
     };
@@ -107,7 +121,7 @@ export default function AdminHotelsPage() {
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end space-x-2">
                                                 <a
-                                                    href={`/hotels/${hotel._id}`}
+                                                    href={ROUTES.HOTEL_DETAILS(hotel._id)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-1.5 text-gray-500 hover:text-[#C5A059] hover:bg-[#F8F6F2] rounded transition-colors"
@@ -116,17 +130,17 @@ export default function AdminHotelsPage() {
                                                     <Eye className="w-4 h-4" />
                                                 </a>
 
-                                                {hotel.status === 'pending' && (
+                                                {hotel.status === STATUS.HOTEL.PENDING && (
                                                     <>
                                                         <button
-                                                            onClick={() => openStatusModal(hotel, 'active')}
+                                                            onClick={() => openStatusModal(hotel, STATUS.HOTEL.ACTIVE)}
                                                             className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
                                                             title="Approve Hotel"
                                                         >
                                                             <CheckCircle className="w-4 h-4" />
                                                         </button>
                                                         <button
-                                                            onClick={() => openStatusModal(hotel, 'rejected')}
+                                                            onClick={() => openStatusModal(hotel, STATUS.HOTEL.REJECTED)}
                                                             className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                                                             title="Reject Hotel"
                                                         >
@@ -135,9 +149,9 @@ export default function AdminHotelsPage() {
                                                     </>
                                                 )}
 
-                                                {(hotel.status === 'active' || hotel.status === 'inactive') && (
+                                                {(hotel.status === STATUS.HOTEL.ACTIVE || hotel.status === STATUS.HOTEL.INACTIVE) && (
                                                     <button
-                                                        onClick={() => openStatusModal(hotel, 'suspended')}
+                                                        onClick={() => openStatusModal(hotel, STATUS.HOTEL.SUSPENDED)}
                                                         className="p-1.5 text-orange-600 hover:bg-orange-50 rounded transition-colors"
                                                         title="Suspend Hotel"
                                                     >
@@ -145,9 +159,9 @@ export default function AdminHotelsPage() {
                                                     </button>
                                                 )}
 
-                                                {hotel.status === 'suspended' && (
+                                                {hotel.status === STATUS.HOTEL.SUSPENDED && (
                                                     <button
-                                                        onClick={() => openStatusModal(hotel, 'active')}
+                                                        onClick={() => openStatusModal(hotel, STATUS.HOTEL.ACTIVE)}
                                                         className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
                                                         title="Reinstate Hotel"
                                                     >
@@ -190,8 +204,8 @@ export default function AdminHotelsPage() {
                         <button
                             onClick={handleUpdateStatus}
                             disabled={updateStatusMutation.isPending}
-                            className={`px-6 py-2 text-white rounded-lg font-medium transition-colors ml-2 disabled:opacity-70 ${statusPayload.status === 'active' ? 'bg-green-600 hover:bg-green-700' :
-                                    statusPayload.status === 'rejected' ? 'bg-red-600 hover:bg-red-700' :
+                            className={`px-6 py-2 text-white rounded-lg font-medium transition-colors ml-2 disabled:opacity-70 ${statusPayload.status === STATUS.HOTEL.ACTIVE ? 'bg-green-600 hover:bg-green-700' :
+                                    statusPayload.status === STATUS.HOTEL.REJECTED ? 'bg-red-600 hover:bg-red-700' :
                                         'bg-orange-600 hover:bg-orange-700'
                                 }`}
                         >
@@ -205,7 +219,7 @@ export default function AdminHotelsPage() {
                         You are about to change the status of <span className="font-bold">"{selectedHotel?.hotelName}"</span> to <span className="font-bold capitalize">{statusPayload.status}</span>.
                     </p>
 
-                    {(statusPayload.status === 'rejected' || statusPayload.status === 'suspended') && (
+                    {(statusPayload.status === STATUS.HOTEL.REJECTED || statusPayload.status === STATUS.HOTEL.SUSPENDED) && (
                         <div>
                             <label className="block text-sm font-medium text-[#1A2B44] mb-1.5">Reason (Required for suspension/rejection)</label>
                             <textarea

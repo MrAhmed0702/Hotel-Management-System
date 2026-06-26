@@ -6,6 +6,7 @@ import Pagination from '../../../components/ui/Pagination';
 import { Calendar, MapPin, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import { ROUTES } from '../../../constants/routes';
+import { STATUS } from '../../../constants/status';
 
 export default function UserBookingsPage() {
     const [page, setPage] = useState(1);
@@ -24,10 +25,10 @@ export default function UserBookingsPage() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'confirmed': return 'bg-green-100 text-green-800';
-            case 'pending': return 'bg-yellow-100 text-yellow-800';
-            case 'cancelled': return 'bg-red-100 text-red-800';
-            case 'expired': return 'bg-gray-100 text-gray-800';
+            case STATUS.BOOKING.CONFIRMED: return 'bg-green-100 text-green-800';
+            case STATUS.BOOKING.PENDING: return 'bg-yellow-100 text-yellow-800';
+            case STATUS.BOOKING.CANCELLED: return 'bg-red-100 text-red-800';
+            case STATUS.BOOKING.EXPIRED: return 'bg-gray-100 text-gray-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -44,7 +45,7 @@ export default function UserBookingsPage() {
                     <Calendar className="w-16 h-16 text-[#C5A059] mx-auto mb-4 opacity-50" />
                     <h3 className="text-xl font-bold text-[#04162E] mb-2">No bookings found</h3>
                     <p className="text-[#717378] mb-6">You haven't made any reservations yet.</p>
-                    <Link to="/hotels" className="px-6 py-2.5 bg-[#C5A059] text-white rounded-lg font-medium hover:bg-[#B38D4A] transition-colors inline-block">
+                    <Link to={ROUTES.HOTELS} className="px-6 py-2.5 bg-[#C5A059] text-white rounded-lg font-medium hover:bg-[#B38D4A] transition-colors inline-block">
                         Explore Hotels
                     </Link>
                 </div>

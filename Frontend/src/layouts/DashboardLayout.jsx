@@ -5,6 +5,7 @@ import DashboardHeader from '../components/layout/DashboardHeader';
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated, selectAuthLoading } from '../features/auth/authSelectors';
 import FullScreenLoader from '../components/ui/FullScreenLoader';
+import { ROUTES } from '../constants/routes';
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,7 +17,7 @@ export default function DashboardLayout() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
   return (

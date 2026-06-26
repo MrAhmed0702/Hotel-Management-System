@@ -7,6 +7,7 @@ import { registration } from "../authSlice";
 import reg from "../../../assets/AuthImages/reg.png";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { ROUTES } from "../../../constants/routes";
 
 import { User, Mail, Phone, Lock, Calendar, MoveLeft } from "lucide-react";
 
@@ -46,7 +47,7 @@ const RegistrationPage = () => {
       dispatch(registration({ user: res.data }));
 
       toast.success("Registration successful 🚀");
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
     } catch (error) {
       console.error(error);
       toast.error("Registration failed ❌");
@@ -81,7 +82,7 @@ const RegistrationPage = () => {
       {/* RIGHT */}
       <div className="relative w-full lg:w-1/2 flex items-center justify-center px-12">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(ROUTES.HOME)}
           className="absolute top-8 right-10 flex items-center gap-1 text-gray-600 hover:text-[#C5A059]"
         >
           <MoveLeft size={18} />
@@ -218,7 +219,7 @@ const RegistrationPage = () => {
 
             <p className="text-sm text-center text-gray-500">
               Already have an account?{" "}
-              <Link to="/login" className="text-[#C5A059]">
+              <Link to={ROUTES.LOGIN} className="text-[#C5A059]">
                 Login
               </Link>
             </p>

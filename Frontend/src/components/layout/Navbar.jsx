@@ -6,6 +6,8 @@ import useAuth from "../../hooks/useAuth";
 import { authApi } from "../../features/auth/api/authApi";
 import { useDispatch } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
+import { ROUTES } from "../../constants/routes";
+import { ROLES } from "../../constants/roles";
 
 const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
@@ -72,7 +74,7 @@ const Navbar = () => {
         {["HOME"].map((item) => (
           <NavLink
             key={item}
-            to="/"
+            to={ROUTES.HOME}
             className={({ isActive }) =>
               `relative pb-1 ${
                 isActive
@@ -149,7 +151,14 @@ const Navbar = () => {
                   <button
                     onClick={() => {
                       setIsOpen(false);
-                      navigate("/dashboard/profile");
+                      const role = activeUser?.role;
+                      if (role === ROLES.ADMIN) {
+                        navigate(ROUTES.ADMIN.PROFILE);
+                      } else if (role === ROLES.OWNER) {
+                        navigate(ROUTES.OWNER.PROFILE);
+                      } else {
+                        navigate(ROUTES.USER.PROFILE);
+                      }
                     }}
                     className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition"
                   >
@@ -160,7 +169,7 @@ const Navbar = () => {
                     onClick={() => {
                       setIsOpen(false);
                       dispatch(logout());
-                      navigate("/login");
+                      navigate(ROUTES.LOGIN);
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
                   >
@@ -173,13 +182,13 @@ const Navbar = () => {
         ) : (
           <div className="flex items-center justify-center gap-2">
             <NavLink
-              to="/login"
+              to={ROUTES.LOGIN}
               className="text-sm font-medium hover:text-[#C5A059]"
             >
               Login
             </NavLink>
             <NavLink
-              to="/register"
+              to={ROUTES.REGISTER}
               className="text-sm font-medium hover:text-[#C5A059]"
             >
               Register

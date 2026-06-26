@@ -1,16 +1,25 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    // Add any necessary state here if local state is needed beyond React Query
+    hotels: [],
 };
 
 const adminSlice = createSlice({
     name: 'admin',
     initialState,
     reducers: {
-        // Add reducers
+        setHotels: (state, action) => {
+            state.hotels = action.payload;
+        },
+        updateHotelStatus: (state, action) => {
+            const { id, status } = action.payload;
+            const hotelIndex = state.hotels.findIndex(h => h._id === id);
+            if (hotelIndex !== -1) {
+                state.hotels[hotelIndex].status = status;
+            }
+        }
     }
 });
 
-export const { } = adminSlice.actions;
+export const { setHotels, updateHotelStatus } = adminSlice.actions;
 export default adminSlice.reducer;

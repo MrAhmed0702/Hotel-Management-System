@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useHotelDetails } from '../api/useHotelQuery';
 import FullScreenLoader from '../../../components/ui/FullScreenLoader';
 import { MapPin, Star, ChevronLeft } from 'lucide-react';
-import RoomList from '../components/RoomList';
+import RoomList from '../../room/components/RoomList';
 
 export default function HotelDetailsPage() {
   const { hotelId } = useParams();

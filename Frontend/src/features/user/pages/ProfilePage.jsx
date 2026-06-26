@@ -1,10 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectCurrentUser } from '../authSelectors';
-import { authApi } from '../api/authApi';
+import { selectCurrentUser } from '../../auth/authSelectors';
+import { authApi } from '../../auth/api/authApi';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { loginSuccess, logout } from '../authSlice';
+import { loginSuccess, logout } from '../../auth/authSlice';
 import FormInput from '../../../components/ui/FormInput';
 import Modal from '../../../components/ui/Modal';
 import { useNavigate } from 'react-router-dom';

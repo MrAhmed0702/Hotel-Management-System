@@ -7,6 +7,7 @@ import { loginSuccess } from "../authSlice";
 import login from "../../../assets/AuthImages/login.png";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { ROUTES } from "../../../constants/routes";
 
 import { Mail, Lock, MoveLeft } from "lucide-react";
 
@@ -36,7 +37,7 @@ const LoginPage = () => {
       );
 
       toast.success("Login successful 🚀");
-      navigate("/");
+      navigate(ROUTES.HOME);
     } catch (error) {
       const message = error.response?.data?.message || "Invalid email or password";
       // highlight inputs
@@ -84,7 +85,7 @@ const LoginPage = () => {
       <div className="relative w-full lg:w-1/2 flex items-center justify-center px-12">
 
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(ROUTES.HOME)}
           className="absolute top-8 right-10 flex items-center gap-1 text-gray-600 hover:text-[#C5A059]"
         >
           <MoveLeft size={18} />
@@ -139,7 +140,7 @@ const LoginPage = () => {
 
             <p className="text-sm text-center text-gray-500">
               Don't have an account?{" "}
-              <Link to="/register" className="text-[#C5A059] hover:underline">
+              <Link to={ROUTES.REGISTER} className="text-[#C5A059] hover:underline">
                 Register
               </Link>
             </p>

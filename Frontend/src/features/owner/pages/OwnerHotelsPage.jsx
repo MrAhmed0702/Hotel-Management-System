@@ -6,6 +6,7 @@ import Pagination from '../../../components/ui/Pagination';
 import { Plus, Edit, Trash2, MapPin, Eye } from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import { ROUTES } from '../../../constants/routes';
+import { STATUS } from '../../../constants/status';
 
 export default function OwnerHotelsPage() {
     const [page, setPage] = useState(1);
@@ -27,11 +28,11 @@ export default function OwnerHotelsPage() {
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case 'active': return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full uppercase">Active</span>;
-            case 'pending': return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full uppercase">Pending</span>;
-            case 'suspended': return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full uppercase">Suspended</span>;
-            case 'rejected': return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full uppercase">Rejected</span>;
-            case 'inactive': return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-full uppercase">Inactive</span>;
+            case STATUS.HOTEL.ACTIVE: return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full uppercase">Active</span>;
+            case STATUS.HOTEL.PENDING: return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full uppercase">Pending</span>;
+            case STATUS.HOTEL.SUSPENDED: return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full uppercase">Suspended</span>;
+            case STATUS.HOTEL.REJECTED: return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full uppercase">Rejected</span>;
+            case STATUS.HOTEL.INACTIVE: return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-full uppercase">Inactive</span>;
             default: return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-full uppercase">{status}</span>;
         }
     };
@@ -126,7 +127,7 @@ export default function OwnerHotelsPage() {
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end space-x-2">
                                                     <button 
-                                                        onClick={() => navigate(`/hotels/${hotel._id}`)}
+                                                        onClick={() => navigate(ROUTES.HOTEL_DETAILS(hotel._id))}
                                                         className="p-1.5 text-gray-500 hover:text-[#C5A059] hover:bg-[#F8F6F2] rounded transition-colors"
                                                         title="View Public Page"
                                                     >
