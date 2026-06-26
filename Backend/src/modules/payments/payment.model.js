@@ -1,4 +1,5 @@
 import { Schema, model, Types } from "mongoose";
+import { PAYMENT_STATUS } from "../../constants/status.js";
 
 const paymentSchema = new Schema(
   {
@@ -27,8 +28,8 @@ const paymentSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["pending", "paid", "failed", "cancelled", "refunded"],
-      default: "pending",
+      enum: Object.values(PAYMENT_STATUS),
+      default: PAYMENT_STATUS.PENDING,
     },
 
     paymentMethod: {
@@ -58,14 +59,13 @@ const paymentSchema = new Schema(
       sparse: true,
     },
 
-    // ⏱ Expiry (logical, not deletion trigger)
+    // ⏱ Expiry for pending payments only — NOT a deletion trigger
     expiresAt: {
       type: Date,
-      required: true,
     },
 
     // 📦 Metadata (flexible)
-    metadata: {
+    gatewayMetadata: {
       type: Map,
       of: String,
     },

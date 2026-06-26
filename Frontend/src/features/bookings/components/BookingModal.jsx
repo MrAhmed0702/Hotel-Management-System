@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Modal from '../../../components/ui/Modal';
 import { useForm } from 'react-hook-form';
 import { useCreateBooking } from '../api/useBookingQuery';
-import { useCreatePayment } from '../../payments/api/usePaymentQuery';
+import { useCreatePayment, useVerifyPayment } from '../../payments/api/usePaymentQuery';
 import { loadRazorpay } from '../../../utils/razorpay';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,7 @@ export default function BookingModal({ isOpen, onClose, room, hotelId }) {
 
     const createBookingMutation = useCreateBooking();
     const createPaymentMutation = useCreatePayment();
+    const verifyPaymentMutation = useVerifyPayment();
     const navigate = useNavigate();
     const user = useSelector(selectCurrentUser);
 
@@ -88,13 +89,22 @@ export default function BookingModal({ isOpen, onClose, room, hotelId }) {
                 name: "Hotel Management System",
                 description: `Booking for ${room.type} room`,
                 order_id: paymentResponse.order.id,
-                handler: function (response) {
-                    console.log(response);
-                    setIsProcessing(false);
-                    clearIdempotencyKey("payment", bookingId);
-                    toast.success('Payment successful! Booking confirmed.');
-                    onClose();
-                    navigate(ROUTES.USER.BOOKINGS);
+                handler: async function (response) {
+                    try {
+                        await verifyPaymentMutation.mutateAsync({
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpaySignature: response.razorpay_signature
+                        });
+                        setIsProcessing(false);
+                        clearIdempotencyKey("payment", bookingId);
+                        toast.success('Payment successful! Booking confirmed.');
+                        onClose();
+                        navigate(ROUTES.USER.BOOKINGS);
+                    } catch (err) {
+                        toast.error('Payment verification failed. Please try verifying on your bookings page.');
+                        setIsProcessing(false);
+                    }
                 },
                 prefill: {
                     name: `${user?.firstName} ${user?.lastName}`,

@@ -1,5 +1,6 @@
 import { Schema, model, Types } from "mongoose";
-import { ROOM_TYPES, ROOM_OPERATIONAL_STATUSES } from "./room.constants.js";
+import { ROOM_TYPES } from "./room.constants.js";
+import { ROOM_STATUS } from "../../constants/status.js";
 import validator from "validator";
 
 const roomSchema = new Schema(
@@ -51,8 +52,8 @@ const roomSchema = new Schema(
 
     operationalStatus: {
       type: String,
-      enum: ROOM_OPERATIONAL_STATUSES,
-      default: "available",
+      enum: Object.values(ROOM_STATUS),
+      default: ROOM_STATUS.AVAILABLE,
       index: true,
     },
 

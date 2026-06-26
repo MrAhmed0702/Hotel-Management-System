@@ -32,6 +32,8 @@ const AdminUsersPage = lazy(() => import("../features/admin/pages/AdminUsersPage
 const AdminHotelsPage = lazy(() => import("../features/admin/pages/AdminHotelsPage"));
 const AdminBookingsPage = lazy(() => import("../features/admin/pages/AdminBookingsPage"));
 
+const PaymentHistoryPage = lazy(() => import("../features/payments/pages/PaymentHistory"));
+
 export const router = createBrowserRouter([
   {
     element: <AppInitializer />,
@@ -98,7 +100,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: ROUTES.USER.PAYMENT_HISTORY,
-                element: <div>Payment History</div>, // Placeholder
+                element: <PaymentHistoryPage />,
               },
 
               // Owner Routes

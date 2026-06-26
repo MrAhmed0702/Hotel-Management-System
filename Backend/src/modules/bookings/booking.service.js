@@ -2,6 +2,8 @@ import * as BookingRepo from "./booking.repository.js";
 import { calculateNightsUTC } from "../../utils/nightsStayCalculationLogic.js";
 import mongoose, { Types } from "mongoose";
 import { ApiError } from "../../utils/apiError.js";
+import { BOOKING_STATUS } from "../../constants/status.js";
+import { TIMEOUTS } from "../../config/timeouts.js";
 
 export const createBookingService = async (userId, hotel, data) => {
   const session = await mongoose.startSession();
@@ -61,9 +63,9 @@ export const createBookingService = async (userId, hotel, data) => {
         numberOfGuests: data.numberOfGuests,
         checkIn: data.checkIn,
         checkOut: data.checkOut,
-        status: "pending",
+        status: BOOKING_STATUS.PENDING,
         paymentStatus: "none",
-        expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
+        expiresAt: new Date(now.getTime() + TIMEOUTS.BOOKING_HOLD_TIMEOUT_MS),
       },
       session
     );

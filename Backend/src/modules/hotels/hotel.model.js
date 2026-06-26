@@ -1,4 +1,5 @@
 import { Schema, model, Types } from "mongoose";
+import { HOTEL_STATUS } from "../../constants/status.js";
 
 const hotelSchema = new Schema(
   {
@@ -92,14 +93,8 @@ const hotelSchema = new Schema(
 
     status: {
       type: String,
-      enum: [
-        "pending",
-        "active",
-        "rejected",
-        "inactive",
-        "suspended"
-      ],
-      default: "pending"
+      enum: Object.values(HOTEL_STATUS),
+      default: HOTEL_STATUS.PENDING
     },
 
     statusReason: {

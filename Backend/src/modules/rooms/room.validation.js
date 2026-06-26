@@ -1,5 +1,6 @@
 import Joi from "joi";
-import { ROOM_TYPES, ROOM_OPERATIONAL_STATUSES } from "./room.constants.js";
+import { ROOM_TYPES } from "./room.constants.js";
+import { ROOM_STATUS } from "../../constants/status.js";
 
 const amenitiesSchema = Joi.array()
     .items(
@@ -57,8 +58,8 @@ export const createRoomSchema = Joi.object({
   operationalStatus: Joi.string()
     .trim()
     .lowercase()
-    .valid(...ROOM_OPERATIONAL_STATUSES)
-    .default("available"),
+    .valid(...Object.values(ROOM_STATUS))
+    .default(ROOM_STATUS.AVAILABLE),
 })
   .required()
   .options({
@@ -87,7 +88,7 @@ export const updateRoomSchema = Joi.object({
   operationalStatus: Joi.string()
     .trim()
     .lowercase()
-    .valid(...ROOM_OPERATIONAL_STATUSES),
+    .valid(...Object.values(ROOM_STATUS)),
 })
   .min(1)
   .options({
@@ -104,7 +105,7 @@ export const updateRoomSchema = Joi.object({
 
   capacity: Joi.number().integer().positive(),
 
-  operationalStatus: Joi.string().trim().lowercase().valid(...ROOM_OPERATIONAL_STATUSES),
+  operationalStatus: Joi.string().trim().lowercase().valid(...Object.values(ROOM_STATUS)),
 
   page: Joi.number().integer().min(1).default(1),
 

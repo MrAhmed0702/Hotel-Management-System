@@ -137,7 +137,9 @@ export const cancelBookingService = async (booking, reason) => {
     );
   }
 
-  if (booking.paymentStatus !== "none") {
+  const cancellablePaymentStatuses = ["none", "initiated"];
+
+  if (!cancellablePaymentStatuses.includes(booking.paymentStatus)) {
     throw new ApiError(
       400,
       "Only unpaid bookings can be cancelled"

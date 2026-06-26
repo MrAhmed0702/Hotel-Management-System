@@ -1,7 +1,9 @@
 import Booking from "./booking.model.js";
 import Room from "../rooms/room.model.js";
+import { BOOKING_STATUS } from "../../constants/status.js";
+import { TIMEOUTS } from "../../config/timeouts.js";
 
-const GRACE_MS = 2 * 60 * 1000;
+const GRACE_MS = TIMEOUTS.GRACE_PERIOD_MS;
 
 export const roomExists = async (hotelId, roomType, session) => {
   return await Room.findOne({
@@ -31,10 +33,10 @@ export const countOverlappingBookings = async (
         isDeleted: false,
         $or: [
           {
-            status: "confirmed"
+            status: BOOKING_STATUS.CONFIRMED
           },
           {
-            status: "pending",
+            status: BOOKING_STATUS.PENDING,
             expiresAt: { $gt: now }
           }
         ],
@@ -73,33 +75,33 @@ export const lockBookingForPayment = async (bookingId, userId, session) => {
     {
       _id: bookingId,
       userId,
-      status: "pending",
-      paymentStatus: "none",
+      status: BOOKING_STATUS.PENDING,
+      paymentStatus: { $in: ["none", "initiated"] },
       expiresAt: { $gt: new Date(now.getTime() - GRACE_MS) },
     },
     { paymentStatus: "initiated" },
     { returnDocument: "after", session },
-  ).lean();
+  );
 };
 
 export const updateBooking = async (bookingId, userId, session, paymentId) => {
-  const now = new Date();
-
+  // When payment is verified, confirm the booking regardless of expiresAt.
+  // The payment was already validated by Razorpay — the booking MUST be confirmed.
+  // Also accept "expired" status in case the cron job raced ahead.
   return Booking.findOneAndUpdate(
     {
       _id: bookingId,
       userId,
-      status: "pending",
+      status: { $in: [BOOKING_STATUS.PENDING, BOOKING_STATUS.EXPIRED] },
       paymentStatus: "initiated",
-      expiresAt: { $gt: new Date(now.getTime() - GRACE_MS) },
     },
     {
-      status: "confirmed",
+      status: BOOKING_STATUS.CONFIRMED,
       paymentStatus: "paid",
       paymentId,
     },
     { returnDocument: "after", session },
-  ).lean();
+  );
 };
 
 export const resetBookingAfterFailedPayment = async (bookingId, userId, session) => {
@@ -109,7 +111,7 @@ export const resetBookingAfterFailedPayment = async (bookingId, userId, session)
     {
       _id: bookingId,
       userId,
-      status: "pending",
+      status: BOOKING_STATUS.PENDING,
       paymentStatus: "initiated",
       expiresAt: { $gt: new Date(now.getTime() - GRACE_MS) },
     },
@@ -117,13 +119,13 @@ export const resetBookingAfterFailedPayment = async (bookingId, userId, session)
       paymentStatus: "none",
     },
     { returnDocument: "after", session },
-  ).lean();
+  );
 };
 
 export const checkActiveBooking = async (userId) => {
   return Booking.exists({
     userId,
-    status: "confirmed"
+    status: BOOKING_STATUS.CONFIRMED
   });
 };
 
@@ -149,7 +151,7 @@ export const resetPaymentStatus = async (bookingId) => {
   await Booking.updateOne(
     {
       _id: bookingId,
-      status: "pending",
+      status: BOOKING_STATUS.PENDING,
     },
     {
       paymentStatus: "none",

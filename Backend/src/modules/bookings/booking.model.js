@@ -1,4 +1,5 @@
 import { Schema, model, Types } from "mongoose";
+import { BOOKING_STATUS } from "../../constants/status.js";
 
 const bookingSchema = new Schema(
   {
@@ -55,8 +56,8 @@ const bookingSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["pending", "confirmed", "cancelled", "expired"],
-      default: "pending",
+      enum: Object.values(BOOKING_STATUS),
+      default: BOOKING_STATUS.PENDING,
     },
 
     paymentStatus: {
@@ -122,7 +123,7 @@ bookingSchema.index({
 
 bookingSchema.index(
   { status: 1, expiresAt: 1 },
-  { partialFilterExpression: { status: "pending" } }
+  { partialFilterExpression: { status: BOOKING_STATUS.PENDING } }
 );
 
 // User history

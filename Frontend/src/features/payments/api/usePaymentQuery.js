@@ -11,10 +11,29 @@ export const useCreatePayment = () => {
     });
 };
 
+export const useGetPayments = () => {
+    return useQuery({
+        queryKey: ["payments"],
+        queryFn: paymentApi.getPayments,
+        onError: (error) => {
+            toast.error(error.response?.data?.message || 'Failed to fetch payments');
+        }
+    })
+}
+
 export const usePaymentById = (id) => {
     return useQuery({
         queryKey: ['payment', id],
         queryFn: () => paymentApi.getPaymentById(id),
         enabled: !!id,
+    });
+};
+
+export const useVerifyPayment = () => {
+    return useMutation({
+        mutationFn: (verifyData) => paymentApi.verifyPayment(verifyData),
+        onError: (error) => {
+            toast.error(error.response?.data?.message || 'Payment verification failed');
+        }
     });
 };

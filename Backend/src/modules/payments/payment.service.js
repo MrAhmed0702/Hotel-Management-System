@@ -4,8 +4,11 @@ import { Types, startSession } from "mongoose";
 import { ApiError } from "../../utils/apiError.js";
 import Payment from "./payment.model.js";
 import { razorpayInstance } from "../../config/razorpay.js";
+import crypto from "crypto";
+import { PAYMENT_STATUS } from "../../constants/status.js";
+import { TIMEOUTS } from "../../config/timeouts.js";
 
-const GRACE_MS = 2 * 60 * 1000;
+const GRACE_MS = TIMEOUTS.GRACE_PERIOD_MS;
 
 //
 // 🔹 CREATE PAYMENT
@@ -45,9 +48,26 @@ export const createPaymentService = async (userId, bookingId, key) => {
       throw new ApiError(400, "Booking expired");
     }
 
-    // 🔥 Prevent duplicate
-    const exists = await PaymentRepo.paymentExist(bookingObjectId, session);
-    if (exists) throw new ApiError(400, "Payment already exists");
+    // Check if there is already a paid payment for this booking
+    const hasPaid = await Payment.exists({
+      bookingId: bookingObjectId,
+      status: PAYMENT_STATUS.PAID,
+    }).session(session);
+
+    if (hasPaid) throw new ApiError(400, "Booking already paid");
+
+    // Invalidate any pending payment attempts for this booking
+    await Payment.updateMany(
+      {
+        bookingId: bookingObjectId,
+        status: PAYMENT_STATUS.PENDING,
+      },
+      {
+        status: PAYMENT_STATUS.FAILED,
+        failureReason: "superseded_by_retry",
+      },
+      { session }
+    );
 
     payment = await PaymentRepo.createPayment(
       {
@@ -55,8 +75,8 @@ export const createPaymentService = async (userId, bookingId, key) => {
         userId: userObjectId,
         amount: booking.totalPrice,
         currency: "INR",
-        status: "pending",
-        expiresAt: booking.expiresAt,
+        status: PAYMENT_STATUS.PENDING,
+        expiresAt: new Date(now.getTime() + TIMEOUTS.PAYMENT_TIMEOUT_MS),
         idempotencyKey: key,
       },
       session
@@ -123,7 +143,7 @@ export const confirmPaymentService = async (
     let payment = null;
 
     if (internalPaymentId) {
-      payment = await PaymentRepo.fetchPayment(internalPaymentId, session);
+      payment = await PaymentRepo.findPaymentById(internalPaymentId, session);
     }
 
     if (!payment && razorpayPaymentId) {
@@ -135,10 +155,14 @@ export const confirmPaymentService = async (
 
     if (!payment) throw new ApiError(404, "Payment not found");
 
-    // 🔥 Idempotency (webhook retry safe)
-    if (payment.status === "paid") {
+    // 🔥 Explicit State Machine checks
+    if (payment.status === PAYMENT_STATUS.PAID) {
       await session.commitTransaction();
       return payment;
+    }
+    
+    if (payment.status !== PAYMENT_STATUS.PENDING) {
+      throw new ApiError(400, `Cannot transition payment from ${payment.status} to paid`);
     }
 
     if (payment.expiresAt < new Date(now.getTime() - GRACE_MS)) {
@@ -161,9 +185,9 @@ export const confirmPaymentService = async (
 
     // 🔥 Handle duplicate webhook safely
     if (!updatedPayment) {
-      const latest = await PaymentRepo.fetchPayment(payment._id, session);
+      const latest = await PaymentRepo.findPaymentById(payment._id, session);
 
-      if (latest?.status === "paid") {
+      if (latest?.status === PAYMENT_STATUS.PAID) {
         await session.commitTransaction();
         return latest;
       }
@@ -210,7 +234,7 @@ export const failPaymentService = async (internalPaymentId, razorpayPaymentId, f
 
     // 🔥 Try internal ID first
     if (internalPaymentId) {
-      payment = await PaymentRepo.fetchPayment(internalPaymentId, session);
+      payment = await PaymentRepo.findPaymentById(internalPaymentId, session);
     }
 
     // 🔥 fallback
@@ -223,10 +247,14 @@ export const failPaymentService = async (internalPaymentId, razorpayPaymentId, f
 
     if (!payment) throw new ApiError(404, "Payment not found");
 
-    // 🔥 Idempotency
-    if (payment.status !== "pending") {
+    // 🔥 Explicit State Machine checks
+    if (payment.status === PAYMENT_STATUS.FAILED) {
       await session.commitTransaction();
       return payment;
+    }
+    
+    if (payment.status !== PAYMENT_STATUS.PENDING) {
+      throw new ApiError(400, `Cannot transition payment from ${payment.status} to failed`);
     }
 
     const updatedPayment = await PaymentRepo.updateFailedPayment(
@@ -257,10 +285,46 @@ export const failPaymentService = async (internalPaymentId, razorpayPaymentId, f
   }
 };
 
-export const getPaymentService = async (paymentId, userId) => {
+export const getPaymentsService = async (userId) => {
+  const payments = await PaymentRepo.getMyPayments(userId);
+
+  if(!payments) throw new ApiError(404, "Payments not found");
+
+  return payments
+}
+
+export const getPaymentByIdService = async (paymentId, userId) => {
   const payment = await PaymentRepo.findByIdAndUser(paymentId, userId);
 
   if (!payment) throw new ApiError(404, "Payment not found");
 
   return payment;
+};
+
+export const verifyPaymentService = async (userId, verifyData) => {
+  const { razorpayPaymentId, razorpayOrderId, razorpaySignature } = verifyData;
+  if (!razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+    throw new ApiError(400, "Missing verification parameters");
+  }
+
+  // 1. Verify Signature
+  const text = razorpayOrderId + "|" + razorpayPaymentId;
+  const generatedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(text)
+    .digest("hex");
+
+  if (generatedSignature !== razorpaySignature) {
+    throw new ApiError(400, "Payment signature verification failed");
+  }
+
+  // 2. Delegate to confirmPaymentService
+  const payment = await PaymentRepo.findByRazorpayOrderId(razorpayOrderId);
+  if (!payment) throw new ApiError(404, "Payment record not found");
+
+  if (payment.userId.toString() !== userId.toString()) {
+    throw new ApiError(403, "Forbidden");
+  }
+
+  return await confirmPaymentService(payment._id, razorpayPaymentId);
 };

@@ -1,11 +1,12 @@
 import Payment from "./payment.model.js";
+import { PAYMENT_STATUS } from "../../constants/status.js";
 
-// 🔹 Check if payment already exists
-export const paymentExist = async (bookingId, session) => {
+// 🔹 Check if active payment already exists
+export const existsActivePayment = async (bookingId, session) => {
   return Boolean(
     await Payment.findOne({
       bookingId,
-      status: { $in: ["pending", "paid"] },
+      status: { $in: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.PAID] },
     })
       .session(session)
       .lean()
@@ -31,14 +32,14 @@ export const createPayment = async (data, session) => {
 export const findByBookingId = async (bookingId) => {
   return await Payment.findOne({
     bookingId,
-    status: { $in: ["pending", "paid"] },
+    status: { $in: [PAYMENT_STATUS.PENDING, PAYMENT_STATUS.PAID] },
   })
     .sort({ createdAt: -1 })
     .lean();
 };
 
-// 🔹 🔥 FIXED: Fetch payment by internal ID
-export const fetchPayment = async (paymentId, session) => {
+// 🔹 Fetch payment by internal ID
+export const findPaymentById = async (paymentId, session) => {
   return await Payment.findById(paymentId)
     .session(session)
     .lean();
@@ -53,23 +54,35 @@ export const findByRazorpayPaymentId = async (id, session) => {
     .lean();
 };
 
+// 🔹 Find by Razorpay order ID
+export const findByRazorpayOrderId = async (id, session) => {
+  if (!id) return null;
+
+  return await Payment.findOne({ razorpayOrderId: id })
+    .session(session)
+    .lean();
+};
+
 // 🔹 Mark payment as PAID
 export const updatePayment = async (paymentId, razorpayPaymentId, session) => {
   return await Payment.findOneAndUpdate(
     {
       _id: paymentId,
-      status: "pending", // 🔥 ensures idempotency
+      status: PAYMENT_STATUS.PENDING, // 🔥 ensures idempotency
     },
     {
-      status: "paid",
-      razorpayPaymentId,
+      $set: {
+        status: PAYMENT_STATUS.PAID,
+        razorpayPaymentId,
+      },
+      $unset: { expiresAt: "" }
     },
     {
       returnDocument: "after",
       session,
       runValidators: true,
     }
-  ).lean();
+  );
 };
 
 // 🔹 Mark payment as FAILED
@@ -77,10 +90,10 @@ export const updateFailedPayment = async (paymentId, razorpayPaymentId, failureD
   return await Payment.findOneAndUpdate(
     {
       _id: paymentId,
-      status: "pending",
+      status: PAYMENT_STATUS.PENDING,
     },
     {
-      status: "failed",
+      status: PAYMENT_STATUS.FAILED,
       razorpayPaymentId,
       failureReason: failureData?.reason,
       gatewayResponse: failureData?.metadata
@@ -90,7 +103,7 @@ export const updateFailedPayment = async (paymentId, razorpayPaymentId, failureD
       session,
       runValidators: true,
     }
-  ).lean();
+  );
 };
 
 export const markOrderCreationFailed = async (paymentId) => {
@@ -99,7 +112,7 @@ export const markOrderCreationFailed = async (paymentId) => {
       _id: paymentId,
     },
     {
-      status: "failed",
+      status: PAYMENT_STATUS.FAILED,
       failureReason: "razorpay_order_creation_failed",
     }
   );
@@ -114,6 +127,10 @@ export const getExistingOrder = async (payment) => {
     }
     : null;
 };
+
+export const getMyPayments = async (userId) => {
+  return await Payment.find({ userId }).sort({ createdAt: -1 }).lean();
+}
 
 export const findByIdAndUser = async (paymentId, userId) => {
   return await Payment.findOne({

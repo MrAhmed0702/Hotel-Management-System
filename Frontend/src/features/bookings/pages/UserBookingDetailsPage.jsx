@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMyBookingById, useCancelBooking } from '../api/useBookingQuery';
-import { useCreatePayment } from '../../payments/api/usePaymentQuery';
+import { useCreatePayment, useVerifyPayment } from '../../payments/api/usePaymentQuery';
 import { loadRazorpay } from '../../../utils/razorpay';
 import FullScreenLoader from '../../../components/ui/FullScreenLoader';
 import { ChevronLeft, MapPin, CreditCard, Calendar, Users, Building, AlertCircle } from 'lucide-react';
@@ -18,6 +18,7 @@ export default function UserBookingDetailsPage() {
     const { data: booking, isLoading, error } = useMyBookingById(bookingId);
     const cancelMutation = useCancelBooking();
     const createPaymentMutation = useCreatePayment();
+    const verifyPaymentMutation = useVerifyPayment();
     const user = useSelector(selectCurrentUser);
 
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -74,15 +75,26 @@ export default function UserBookingDetailsPage() {
             }
 
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+                key: import.meta.env.VITE_RAZORPAY_KEY,
                 amount: paymentResponse.order.amount,
                 currency: paymentResponse.order.currency,
                 name: "Hotel Management System",
                 description: `Payment for Booking ${booking.id}`,
                 order_id: paymentResponse.order.id,
-                handler: function () {
-                    toast.success('Payment successful! Your booking is now confirmed.');
-                    navigate(0); // Refresh the page
+                handler: async function (response) {
+                    try {
+                        setIsProcessingPayment(true);
+                        await verifyPaymentMutation.mutateAsync({
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpaySignature: response.razorpay_signature
+                        });
+                        toast.success('Payment successful! Your booking is now confirmed.');
+                        navigate(0); // Refresh the page
+                    } catch (err) {
+                        toast.error('Payment verification failed. Please contact support.');
+                        setIsProcessingPayment(false);
+                    }
                 },
                 prefill: {
                     name: `${user?.firstName} ${user?.lastName}`,
@@ -108,8 +120,10 @@ export default function UserBookingDetailsPage() {
         }
     };
 
-    const canCancel = booking.status === 'pending' && booking.paymentStatus === 'none';
-    const canPay = booking.status === 'pending' && booking.paymentStatus === 'none';
+    const isExpired = new Date(booking.expiresAt) <= new Date();
+    const canCancel = (booking.status === 'pending' && (booking.paymentStatus === 'none' || booking.paymentStatus === 'initiated')) && !isExpired;
+    const canPay = booking.status === 'pending' && booking.paymentStatus !== 'paid' && !isExpired;
+    const isCancelled = booking.status === 'cancelled';
 
     return (
         <div className="max-w-4xl mx-auto pb-12">
@@ -216,10 +230,9 @@ export default function UserBookingDetailsPage() {
                     </div>
                 </div>
 
-                {/* Actions Footer */}
                 {(canCancel || canPay) && (
                     <div className="p-6 md:p-8 bg-[#FBF9FB] border-t border-[#EEEEEE] flex flex-col sm:flex-row justify-end gap-4">
-                        {canCancel && (
+                        {canCancel && !isCancelled && (
                             <button 
                                 onClick={() => setShowCancelModal(true)}
                                 className="px-6 py-2.5 text-red-600 border border-red-200 bg-white hover:bg-red-50 rounded-lg font-medium transition-colors"

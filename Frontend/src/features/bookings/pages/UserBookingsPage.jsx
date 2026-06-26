@@ -104,6 +104,14 @@ export default function UserBookingsPage() {
                                 </div>
                                 
                                 <div className="flex justify-end border-t border-[#EEEEEE] pt-4 mt-2">
+                                    {booking.status === STATUS.BOOKING.PENDING && booking.paymentStatus !== 'paid' && new Date(booking.expiresAt) > new Date() && (
+                                        <Link 
+                                            to={ROUTES.USER.BOOKING_DETAILS(booking._id)}
+                                            className="px-5 py-2 bg-[#C5A059] text-white rounded-lg font-medium hover:bg-[#B38D4A] transition-colors mr-3"
+                                        >
+                                            Pay Now
+                                        </Link>
+                                    )}
                                     <Link 
                                         to={ROUTES.USER.BOOKING_DETAILS(booking._id)}
                                         className="px-5 py-2 border border-[#C5A059] text-[#C5A059] rounded-lg font-medium hover:bg-[#F8F6F2] transition-colors"

@@ -5,9 +5,3 @@ export const ROOM_TYPES = [
   "deluxe",
   "family"
 ];
-
-export const ROOM_OPERATIONAL_STATUSES = [
-  "available",
-  "maintenance",
-  "inactive"
-];
