@@ -52,6 +52,7 @@ export default function BookingModal({ isOpen, onClose, room, hotelId }) {
         }
 
         setIsProcessing(true);
+        let currentBookingId = null;
         try {
             // 1. Create Booking
             const bookingPayload = {
@@ -63,6 +64,7 @@ export default function BookingModal({ isOpen, onClose, room, hotelId }) {
             };
 
             const bookingResponse = await createBookingMutation.mutateAsync({ hotelId, data: bookingPayload });
+            currentBookingId = bookingResponse.id;
             const bookingId = bookingResponse.id;
 
             // 2. Create Payment & Razorpay Order
@@ -135,10 +137,13 @@ export default function BookingModal({ isOpen, onClose, room, hotelId }) {
             rzp.open();
 
         } catch (error) {
-            clearIdempotencyKey("payment", bookingId);
-            setIsProcessing(false);
+            if (currentBookingId) {
+                clearIdempotencyKey("payment", currentBookingId);
+            }
             console.error('Booking flow error:', error);
             // toast error is handled in mutations
+        } finally {
+            setIsProcessing(false);
         } 
     };
 

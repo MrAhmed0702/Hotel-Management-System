@@ -133,7 +133,7 @@ export const hotelUpdateSchema = Joi.object({
 
 })
     .min(1)
-    .unknown(false);
+    .unknown(true);
 
 export const getOwnerHotelsSchema = Joi.object({
     page: Joi.number()
